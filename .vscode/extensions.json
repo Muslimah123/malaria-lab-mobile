@@ -1,0 +1,13 @@
+{
+    "recommendations": [
+      "ms-python.python",
+      "ms-vscode.vscode-typescript",
+      "esbenp.prettier-vscode",
+      "ms-vscode.vscode-eslint",
+      "expo.vscode-expo-tools",
+      "bradlc.vscode-tailwindcss",
+      "ms-azuretools.vscode-docker",
+      "humao.rest-client"
+    ]
+  }
+  
