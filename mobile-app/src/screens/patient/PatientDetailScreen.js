@@ -20,6 +20,74 @@ import { Ionicons } from '@expo/vector-icons';
 const { width, height } = Dimensions.get('window');
 import patientService from '../../services/api/patientService';
 
+// Helper functions for formatting
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  } catch {
+    return dateString;
+  }
+};
+
+const formatDateTime = (dateString) => {
+  if (!dateString) return 'N/A';
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch {
+    return dateString;
+  }
+};
+
+const getAge = (dateOfBirth) => {
+  if (!dateOfBirth) return 'N/A';
+  try {
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return `${age} years old`;
+  } catch {
+    return 'N/A';
+  }
+};
+
+// Helper functions for test status styling
+const getTestStatusColor = (status) => {
+  switch (status?.toUpperCase()) {
+    case 'COMPLETED': return '#27ae60'; // Green
+    case 'PENDING': return '#f39c12'; // Orange
+    case 'PROCESSING': return '#3498db'; // Blue
+    case 'FAILED': return '#e74c3c'; // Red
+    default: return '#95a5a6'; // Gray
+  }
+};
+
+const getTestStatusIcon = (status) => {
+  switch (status?.toUpperCase()) {
+    case 'COMPLETED': return 'checkmark-circle';
+    case 'PENDING': return 'time';
+    case 'PROCESSING': return 'sync';
+    case 'FAILED': return 'close-circle';
+    default: return 'help-circle';
+  }
+};
+
 // Render-time error boundary so crashes show on screen
 class ScreenErrorBoundary extends React.Component {
   constructor(props) {
@@ -308,6 +376,22 @@ const PatientDetailScreen = ({ route, navigation }) => {
     }
   };
 
+  // Navigation health check function
+  const checkNavigationHealth = () => {
+    console.log('🏥 [NAVIGATION HEALTH CHECK]');
+    console.log('Navigation object:', !!navigation);
+    console.log('Navigation methods:', Object.keys(navigation || {}));
+    console.log('Current route:', navigation?.getCurrentRoute?.()?.name);
+    console.log('Navigation state:', navigation?.getState?.());
+    
+    Alert.alert(
+      'Navigation Health Check',
+      `Navigation: ${!!navigation ? '✅ Available' : '❌ Missing'}\n` +
+      `Current Route: ${navigation?.getCurrentRoute?.()?.name || 'Unknown'}\n` +
+      `Methods: ${Object.keys(navigation || {}).length}`
+    );
+  };
+
   // Animation interpolations
   const floatInterpolate = floatAnim.interpolate({
     inputRange: [0, 1],
@@ -429,38 +513,15 @@ const PatientDetailScreen = ({ route, navigation }) => {
     <ScreenErrorBoundary onGoBack={() => navigation.goBack()} onRetry={() => loadPatientData()}>
     <SafeAreaView style={styles.modernContainer}>
       <StatusBar barStyle="light-content" backgroundColor="#0f0f23" />
+      
+
+      
       <LinearGradient
         colors={['#0f0f23', '#1a1a3a', '#2d2d5f']}
         style={styles.backgroundGradient}
       >
-        {/* Floating Elements Background */}
-        <View style={styles.floatingElementsContainer}>
-          {[...Array(6)].map((_, i) => (
-            <Animated.View
-              key={i}
-              style={[
-                styles.floatingElement,
-                {
-                  top: `${10 + i * 15}%`,
-                  left: `${5 + (i % 2) * 85}%`,
-                  transform: [{ translateY: floatInterpolate }],
-                  opacity: fadeAnim,
-                }
-              ]}
-            />
-          ))}
-        </View>
-
         {/* Modern Header */}
-        <Animated.View
-          style={[
-            styles.modernHeader,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-        >
+        <View style={styles.modernHeader}>
           <TouchableOpacity
             style={styles.modernBackButton}
             onPress={() => navigation.goBack()}
@@ -476,7 +537,7 @@ const PatientDetailScreen = ({ route, navigation }) => {
           <View style={styles.headerTitleContainer}>
             <Text style={styles.modernHeaderTitle}>Patient Profile</Text>
             <Text style={styles.modernHeaderSubtitle}>
-              {patient.firstName} {patient.lastName}
+              {patient?.firstName} {patient?.lastName}
             </Text>
           </View>
           
@@ -504,9 +565,7 @@ const PatientDetailScreen = ({ route, navigation }) => {
               </LinearGradient>
             </TouchableOpacity>
           </View>
-        </Animated.View>
-
-
+        </View>
 
         {/* Modern Content */}
         <ScrollView
@@ -523,15 +582,7 @@ const PatientDetailScreen = ({ route, navigation }) => {
           showsVerticalScrollIndicator={false}
         >
           {/* Patient Information Card */}
-          <Animated.View
-            style={[
-              styles.modernCard,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }]
-              }
-            ]}
-          >
+          <View style={styles.modernCard}>
             <LinearGradient
               colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
               style={styles.cardGradient}
@@ -546,52 +597,44 @@ const PatientDetailScreen = ({ route, navigation }) => {
                   <View style={styles.modernInfoItem}>
                     <Text style={styles.modernInfoLabel}>Full Name</Text>
                     <Text style={styles.modernInfoValue}>
-                      {patient.firstName} {patient.lastName}
+                      {patient?.firstName} {patient?.lastName}
                     </Text>
                   </View>
                   <View style={styles.modernInfoItem}>
                     <Text style={styles.modernInfoLabel}>Patient ID</Text>
-                    <Text style={styles.modernInfoValue}>{patient.patientId || patient.id}</Text>
+                    <Text style={styles.modernInfoValue}>{patient?.patientId || patient?.id}</Text>
                   </View>
                   <View style={styles.modernInfoItem}>
                     <Text style={styles.modernInfoLabel}>Date of Birth</Text>
                     <Text style={styles.modernInfoValue}>
-                      {formatDate(patient.dateOfBirth)} ({getAge(patient.dateOfBirth)})
+                      {formatDate(patient?.dateOfBirth)} ({getAge(patient?.dateOfBirth)})
                     </Text>
                   </View>
                   <View style={styles.modernInfoItem}>
                     <Text style={styles.modernInfoLabel}>Gender</Text>
                     <Text style={styles.modernInfoValue}>
-                      {patient.gender?.charAt(0).toUpperCase()}{patient.gender?.slice(1)}
+                      {patient?.gender?.charAt(0).toUpperCase()}{patient?.gender?.slice(1)}
                     </Text>
                   </View>
-                  {patient.phoneNumber && (
+                  {patient?.phoneNumber && (
                     <View style={styles.modernInfoItem}>
                       <Text style={styles.modernInfoLabel}>Phone</Text>
-                      <Text style={styles.modernInfoValue}>{patient.phoneNumber}</Text>
+                      <Text style={styles.modernInfoValue}>{patient?.phoneNumber}</Text>
                     </View>
                   )}
-                  {patient.email && (
+                  {patient?.email && (
                     <View style={styles.modernInfoItem}>
                       <Text style={styles.modernInfoLabel}>Email</Text>
-                      <Text style={styles.modernInfoValue}>{patient.email}</Text>
+                      <Text style={styles.modernInfoValue}>{patient?.email}</Text>
                     </View>
                   )}
                 </View>
               </View>
             </LinearGradient>
-          </Animated.View>
+          </View>
 
           {/* Medical Summary Card */}
-          <Animated.View
-            style={[
-              styles.modernCard,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }]
-              }
-            ]}
-          >
+          <View style={styles.modernCard}>
             <LinearGradient
               colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
               style={styles.cardGradient}
@@ -604,135 +647,102 @@ const PatientDetailScreen = ({ route, navigation }) => {
               <View style={styles.modernCardContent}>
                 <View style={styles.statsGrid}>
                   <View style={styles.statCard}>
-                    <Text style={styles.statNumber}>{patient.totalTests || 0}</Text>
+                    <Text style={styles.statNumber}>{testHistory?.length || 0}</Text>
                     <Text style={styles.statLabel}>Total Tests</Text>
                   </View>
                   <View style={styles.statCard}>
-                    <Text style={[styles.statNumber, { color: patient.positiveTests > 0 ? '#e74c3c' : '#27ae60' }]}>
-                      {patient.positiveTests || 0}
+                    <Text style={[styles.statNumber, { 
+                      color: patient?.positiveTests > 0 ? '#e74c3c' : '#27ae60' 
+                    }]}>
+                      {patient?.positiveTests || 0}
                     </Text>
                     <Text style={styles.statLabel}>Positive</Text>
                   </View>
                   <View style={styles.statCard}>
-                    <Text style={styles.statNumber}>{(patient.totalTests || 0) - (patient.positiveTests || 0)}</Text>
+                    <Text style={styles.statNumber}>
+                      {(patient?.totalTests || 0) - (patient?.positiveTests || 0)}
+                    </Text>
                     <Text style={styles.statLabel}>Negative</Text>
                   </View>
                 </View>
                 
-                {patient.lastTestDate && (
+                {patient?.lastTestDate && (
                   <View style={styles.lastTestInfo}>
                     <Text style={styles.lastTestLabel}>Last Test Date</Text>
-                    <Text style={styles.lastTestValue}>{formatDate(patient.lastTestDate)}</Text>
+                    <Text style={styles.lastTestValue}>
+                      {formatDate(patient.lastTestDate)}
+                    </Text>
                   </View>
                 )}
               </View>
             </LinearGradient>
-          </Animated.View>
+          </View>
 
           {/* Test History Card */}
-          <Animated.View
-            style={[
-              styles.modernCard,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }]
-              }
-            ]}
-          >
+          <View style={styles.modernCard}>
             <LinearGradient
               colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
               style={styles.cardGradient}
             >
               <View style={styles.modernCardHeader}>
                 <Ionicons name="list" size={20} color="#667eea" />
-                <Text style={styles.modernCardTitle}>Test History ({testHistory.length})</Text>
+                <Text style={styles.modernCardTitle}>Test History ({testHistory?.length || 0})</Text>
               </View>
               
               <View style={styles.modernCardContent}>
-                                 {testHistory.length === 0 ? (
-                   <View style={styles.emptyTestHistory}>
-                     <Ionicons name="flask-outline" size={40} color="rgba(255, 255, 255, 0.3)" />
-                     <Text style={styles.emptyTestText}>No tests recorded yet</Text>
-                     <Text style={styles.emptyTestText}>Debug: testHistory = {JSON.stringify(testHistory)}</Text>
-                     
-                     {/* Add test data for navigation testing */}
-                     <TouchableOpacity
-                       style={{
-                         backgroundColor: '#4CAF50',
-                         padding: 15,
-                         borderRadius: 10,
-                         marginTop: 20,
-                         alignItems: 'center'
-                       }}
-                       onPress={() => {
-                         const params = {
-                           testId: 'DEMO-TEST-001', // Human-readable ID
-                           patientName: patient ? `${patient.firstName} ${patient.lastName}` : 'Demo Patient',
-                           internalId: 'demo-uuid-123'
-                         };
-                         console.log('🧪 Demo test navigation with params:', params);
-                         navigation.navigate('TestDetail', params);
-                       }}
-                     >
-                       <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                         🧪 Demo Test Detail (For Testing)
-                       </Text>
-                     </TouchableOpacity>
-                   </View>
-                 ) : (
-                   <>
-                     <Text style={{ color: 'white', marginBottom: 10 }}>
-                       Debug: Found {testHistory.length} tests
-                     </Text>
-                     {testHistory.map((test, index) => (
-                    <TouchableOpacity 
-                      key={test.id || index} 
-                      style={styles.modernTestItem}
-                      onPress={() => {
-                        const params = { 
-                          testId: test.testId || test.id, // Use human-readable testId first
-                          patientName: `${patient.firstName} ${patient.lastName}`,
-                          internalId: test.id // Keep UUID for backend if needed
-                        };
-                        // Navigate directly to TestDetail with proper parameters
-                        try {
-                          console.log('🚀 Navigating to TestDetail with params:', params);
-                          navigation.navigate('TestDetail', params);
-                          console.log('✅ Navigation completed successfully');
-                        } catch (error) {
-                          console.error('❌ Navigation error:', error);
-                          Alert.alert('Navigation Error', `Failed to navigate: ${error.message}`);
-                        }
-                      }}
-                    >
-                      <View style={styles.testItemHeader}>
-                        <Text style={styles.modernTestId}>Test #{test.testId || test.id}</Text>
-                        <View style={[
-                          styles.modernStatusBadge,
-                          { backgroundColor: `${getTestStatusColor(test.status)}20` }
-                        ]}>
-                          <Ionicons 
-                            name={getTestStatusIcon(test.status)} 
-                            size={12} 
-                            color={getTestStatusColor(test.status)} 
-                          />
-                          <Text style={[styles.modernStatusText, { color: getTestStatusColor(test.status) }]}>
-                            {test.status?.toUpperCase() || 'UNKNOWN'}
-                          </Text>
+                {testHistory && testHistory.length > 0 ? (
+                  <>
+                    {testHistory.map((test, index) => (
+                      <TouchableOpacity 
+                        key={test.id || index} 
+                        style={styles.modernTestItem}
+                        onPress={() => {
+                          console.log('🧪 Navigating to test:', test.testId || test.id);
+                          navigation.navigate('TestDetail', {
+                            testId: test.testId || test.id,
+                            patientName: `${patient?.firstName} ${patient?.lastName}`,
+                            internalId: test.id
+                          });
+                        }}
+                      >
+                        <View style={styles.testItemHeader}>
+                          <Text style={styles.modernTestId}>Test #{test.testId || test.id}</Text>
+                          <View style={[
+                            styles.modernStatusBadge,
+                            { backgroundColor: `${getTestStatusColor(test.status)}20` }
+                          ]}>
+                            <Ionicons 
+                              name={getTestStatusIcon(test.status)} 
+                              size={12} 
+                              color={getTestStatusColor(test.status)} 
+                            />
+                            <Text style={[styles.modernStatusText, { color: getTestStatusColor(test.status) }]}>
+                              {test.status?.toUpperCase() || 'PENDING'}
+                            </Text>
+                          </View>
                         </View>
-                      </View>
-                      <Text style={styles.modernTestDate}>
-                        {formatDateTime(test.createdAt)}
-                      </Text>
-                      <Ionicons name="chevron-forward" size={16} color="rgba(255, 255, 255, 0.5)" style={styles.testChevron} />
-                                         </TouchableOpacity>
-                   ))}
-                   </>
-                 )}
+                        <Text style={styles.modernTestDate}>
+                          {formatDateTime(test.createdAt)}
+                        </Text>
+                        <Ionicons name="chevron-forward" size={16} color="rgba(255, 255, 255, 0.5)" style={styles.testChevron} />
+                      </TouchableOpacity>
+                    ))}
+                  </>
+                ) : (
+                  <View style={styles.emptyTestHistory}>
+                    <Ionicons name="flask-outline" size={40} color="rgba(255, 255, 255, 0.3)" />
+                    <Text style={styles.emptyTestText}>No tests recorded yet</Text>
+                    <Text style={styles.emptyTestSubtext}>
+                      New tests will appear here once processed
+                    </Text>
+                  </View>
+                )}
               </View>
             </LinearGradient>
-          </Animated.View>
+          </View>
         </ScrollView>
+
+
       </LinearGradient>
 
       {/* Edit Modal */}
@@ -953,6 +963,14 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.6)',
     marginTop: 12,
     letterSpacing: 0.2,
+  },
+  emptyTestSubtext: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: 'rgba(255, 255, 255, 0.4)',
+    marginTop: 8,
+    letterSpacing: 0.2,
+    textAlign: 'center',
   },
   modernTestItem: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',

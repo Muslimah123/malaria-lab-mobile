@@ -731,7 +731,7 @@ const UploadScreen = () => {
         <View style={styles.searchSection}>
           <Text style={styles.sectionTitle}>Search Existing Patient</Text>
           <View style={styles.searchContainer}>
-            <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+            <Ionicons name="search" size={20} color="rgba(255, 255, 255, 0.7)" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
               placeholder="Search by ID, name, or phone..."
@@ -1351,7 +1351,7 @@ const UploadScreen = () => {
                   style={styles.metricGradient}
                 >
                   <View style={styles.metricHeader}>
-                    <Ionicons name="analytics" size={20} color="#333" />
+                    <Ionicons name="analytics" size={20} color="#ffffff" />
                     <Text style={styles.metricTitle}>Parasite Density</Text>
                   </View>
                   <Text style={styles.metricValue}>{totalParasites}</Text>
@@ -1379,7 +1379,7 @@ const UploadScreen = () => {
                   style={styles.metricGradient}
                 >
                   <View style={styles.metricHeader}>
-                    <Ionicons name="cellular" size={20} color="#333" />
+                    <Ionicons name="cellular" size={20} color="#ffffff" />
                     <Text style={styles.metricTitle}>White Blood Cells</Text>
                   </View>
                   <Text style={styles.metricValue}>{totalWbcs}</Text>
@@ -1403,7 +1403,7 @@ const UploadScreen = () => {
                 >
                   <View style={styles.metricHeader}>
                     <Animated.View style={{ transform: [{ rotate: rotateInterpolate }] }}>
-                      <Ionicons name="hardware-chip" size={20} color="#333" />
+                      <Ionicons name="hardware-chip" size={20} color="#ffffff" />
                     </Animated.View>
                     <Text style={styles.metricTitle}>AI Processing</Text>
                   </View>
@@ -1424,7 +1424,7 @@ const UploadScreen = () => {
                   style={styles.metricGradient}
                 >
                   <View style={styles.metricHeader}>
-                    <Ionicons name="checkmark-circle" size={20} color="#333" />
+                    <Ionicons name="checkmark-circle" size={20} color="#ffffff" />
                     <Text style={styles.metricTitle}>Sample Quality</Text>
                   </View>
                   <Text style={styles.metricValue}>{totalImages}</Text>
@@ -1563,7 +1563,7 @@ const UploadScreen = () => {
                                   colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.6)']}
                                   style={styles.zoomIndicatorGradient}
                                 >
-                                  <Ionicons name="expand" size={18} color="#333" />
+                                  <Ionicons name="expand" size={18} color="#ffffff" />
                                 </LinearGradient>
                               </Animated.View>
                             </View>
@@ -2183,10 +2183,10 @@ const UploadScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
+      <StatusBar barStyle="light-content" backgroundColor="#0f0f23" />
       
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#0f0f23', '#1a1a3a', '#2d2d5f']}
         style={styles.header}
       >
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -2200,9 +2200,14 @@ const UploadScreen = () => {
 
         {renderStepIndicator()}
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <LinearGradient
+        colors={['#0f0f23', '#1a1a3a', '#2d2d5f']}
+        style={styles.contentGradient}
+      >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             {renderCurrentStep()}
           </ScrollView>
+      </LinearGradient>
 
       {/* Navigation Buttons */}
       {currentStep < 5 && (
@@ -2244,7 +2249,10 @@ const UploadScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0f0f23',
+  },
+  contentGradient: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -2267,11 +2275,11 @@ const styles = StyleSheet.create({
   },
   stepIndicator: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     paddingVertical: 20,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
   stepContainer: {
     flex: 1,
@@ -2289,37 +2297,40 @@ const styles = StyleSheet.create({
     backgroundColor: '#667eea',
   },
   inactiveStep: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderWidth: 2,
-    borderColor: '#e9ecef',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   stepNumber: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#ffffff',
   },
   activeStepText: {
-    color: '#fff',
+    color: '#667eea',
   },
   inactiveStepText: {
-    color: '#999',
+    color: 'rgba(255, 255, 255, 0.6)',
   },
   stepLabel: {
     fontSize: 12,
     fontWeight: '500',
     textAlign: 'center',
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   activeStepLabel: {
     color: '#667eea',
   },
   inactiveStepLabel: {
-    color: '#999',
+    color: 'rgba(255, 255, 255, 0.6)',
   },
   content: {
     flex: 1,
     padding: 20,
+    backgroundColor: 'transparent',
   },
   stepContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#2a2a4a',
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
@@ -2332,12 +2343,12 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#ffffff',
     marginBottom: 8,
   },
   stepSubtitle: {
     fontSize: 16,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 24,
   },
   patientOptions: {
@@ -2375,18 +2386,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
     marginBottom: 16,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   searchIcon: {
     marginRight: 12,
@@ -2394,14 +2405,14 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: '#ffffff',
   },
   searchResults: {
     marginTop: 12,
-    backgroundColor: '#fff',
+    backgroundColor: '#2a2a4a',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     maxHeight: 200,
   },
   searchResultItem: {
@@ -2417,17 +2428,17 @@ const styles = StyleSheet.create({
   patientName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
     marginBottom: 4,
   },
   patientDetails: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   noResults: {
     textAlign: 'center',
     padding: 20,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.6)',
     fontStyle: 'italic',
   },
   newPatientSection: {
@@ -2444,17 +2455,17 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
     marginBottom: 8,
   },
   textInput: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: '#333',
+    color: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   genderOptions: {
     flexDirection: 'row',
@@ -2476,7 +2487,7 @@ const styles = StyleSheet.create({
   genderOptionText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   genderOptionTextActive: {
     color: '#fff',
@@ -2543,7 +2554,7 @@ const styles = StyleSheet.create({
   priorityOptionText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   priorityOptionTextActive: {
     color: '#fff',
@@ -2568,27 +2579,27 @@ const styles = StyleSheet.create({
   sampleTypeOptionText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   sampleTypeOptionTextActive: {
     color: '#fff',
   },
   textArea: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: '#333',
+    color: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     minHeight: 100,
   },
   selectedPatientCard: {
-    backgroundColor: '#f0f8ff',
+    backgroundColor: 'rgba(102, 126, 234, 0.2)',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#b3d9ff',
+    borderColor: 'rgba(102, 126, 234, 0.3)',
     marginTop: 16,
   },
   selectedPatientHeader: {
@@ -2605,23 +2616,23 @@ const styles = StyleSheet.create({
   selectedPatientName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#ffffff',
     marginBottom: 4,
   },
   selectedPatientDetails: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 12,
   },
   changePatientButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     padding: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#667eea',
+    borderColor: 'rgba(102, 126, 234, 0.3)',
     gap: 6,
   },
   changePatientButtonText: {
@@ -2633,21 +2644,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 40,
     borderWidth: 2,
-    borderColor: '#e9ecef',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     borderStyle: 'dashed',
     borderRadius: 15,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   uploadTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#ffffff',
     marginTop: 16,
     marginBottom: 8,
   },
   uploadSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 20,
@@ -2696,7 +2707,7 @@ const styles = StyleSheet.create({
      uploadedFilesTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
      marginBottom: 16,
    },
    imageGrid: {
@@ -2729,12 +2740,12 @@ const styles = StyleSheet.create({
    imageName: {
      fontSize: 14,
      fontWeight: '500',
-     color: '#333',
+     color: '#ffffff',
      marginBottom: 4,
   },
   imageSize: {
     fontSize: 12,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
    },
    removeImageButton: {
      position: 'absolute',
@@ -2749,7 +2760,7 @@ const styles = StyleSheet.create({
   reviewSectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
     marginBottom: 16,
   },
   reviewCard: {
@@ -2757,19 +2768,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 8,
     marginBottom: 8,
   },
   reviewLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   reviewValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
     flex: 1,
     textAlign: 'right',
   },
@@ -2794,7 +2805,7 @@ const styles = StyleSheet.create({
   processingStage: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
     marginBottom: 24,
     textAlign: 'center',
   },
@@ -2832,11 +2843,11 @@ const styles = StyleSheet.create({
   },
   processingStepText: {
     fontSize: 16,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
     flex: 1,
   },
   processingStepTextActive: {
-    color: '#333',
+    color: '#ffffff',
     fontWeight: '500',
   },
   resultsContainer: {
@@ -2863,7 +2874,7 @@ const styles = StyleSheet.create({
   },
   resultSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
   },
   completionActions: {
@@ -2917,9 +2928,9 @@ const styles = StyleSheet.create({
   navigationButtons: {
     flexDirection: 'row',
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderTopWidth: 1,
-    borderTopColor: '#e9ecef',
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
     gap: 16,
   },
   prevButton: {
@@ -2927,8 +2938,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#667eea',
+    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(102, 126, 234, 0.3)',
     gap: 8,
   },
   prevButtonText: {
@@ -2947,7 +2959,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   nextButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   nextButtonText: {
     fontSize: 16,
@@ -2957,7 +2971,7 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
     padding: 20,
   },
@@ -2994,7 +3008,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
     flex: 1,
   },
   checkResultsButton: {
@@ -3032,7 +3046,7 @@ const styles = StyleSheet.create({
   },
   manualCheckText: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
     marginBottom: 12,
   },

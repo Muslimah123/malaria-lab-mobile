@@ -2,8 +2,8 @@
 const DEV_CONFIG = {
   // Try multiple common IPs automatically
   POSSIBLE_BASE_URLS: [
-    'http://172.20.10.3:5000/api',  // Current IP
-    'http://192.168.1.168:5000/api', // Previous IP
+    'http://192.168.1.168:5000/api', // Your preferred IP
+    'http://172.20.10.3:5000/api',   // Backup IP
     'http://localhost:5000/api',     // Same machine
     'http://127.0.0.1:5000/api',     // Localhost alternative
     'http://10.0.0.2:5000/api',      // Common Docker/VM IP
@@ -67,7 +67,11 @@ export const DEBUG = DEV_CONFIG.DEBUG;
 
 // Auto-discovered API base URL
 export const getApiBaseUrl = async () => {
+  // Option 1: Use auto-discovery (current)
   return await discoverApiUrl();
+  
+  // Option 2: Use fixed IP (uncomment the line below and comment the line above)
+  // return 'http://192.168.1.168:5000/api';
 };
 
 // Legacy export for backward compatibility

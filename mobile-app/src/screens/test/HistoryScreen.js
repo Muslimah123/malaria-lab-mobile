@@ -8,9 +8,14 @@ import {
   TouchableOpacity,
   RefreshControl,
   Alert,
+  StatusBar,
+  Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+
+const { width } = Dimensions.get('window');
 
 
 import AddTestModal from '../../components/test/AddTestModal';
@@ -18,7 +23,7 @@ import TestCard from '../../components/test/TestCard';
 import testService from '../../services/api/testService';
 import patientService from '../../services/api/patientService';
 
-const HistoryScreen = () => {
+const HistoryScreen = ({ navigation }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [tests, setTests] = useState([]);
   const [filteredTests, setFilteredTests] = useState([]);
@@ -125,8 +130,21 @@ const HistoryScreen = () => {
   };
 
   const handleTestPress = (test) => {
-    // TODO: Navigate to test details screen
-    Alert.alert('Test Details', `Viewing details for test ${test.testId}`);
+    // Navigate to TestDetailScreen with proper parameters
+    const patient = patients.find(p => p.id == test.patientId);
+    const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient';
+    
+    console.log('🧪 [HistoryScreen] Navigating to test detail:', {
+      testId: test.testId, // Human-readable ID
+      patientName,
+      internalId: test.id // UUID for API calls
+    });
+    
+    navigation.navigate('TestDetail', {
+      testId: test.testId, // Human-readable ID for display
+      patientName,
+      internalId: test.id // UUID for backend API calls
+    });
   };
 
   const onRefresh = async () => {
@@ -157,51 +175,99 @@ const HistoryScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        style={styles.header}
+      <StatusBar barStyle="light-content" backgroundColor="#0f0f23" />
+      <LinearGradient 
+        colors={['#0f0f23', '#1a1a3a', '#2d2d5f']} 
+        style={styles.mainGradient}
       >
-        <View style={styles.headerContent}>
-          <View style={styles.headerLeft}>
-            <View>
-              <Text style={styles.title}>Test History</Text>
-              <Text style={styles.subtitle}>
-                {stats.total} test{stats.total !== 1 ? 's' : ''} • Manage laboratory tests
-              </Text>
+        <LinearGradient
+          colors={['#667eea', '#764ba2']}
+          style={styles.header}
+        >
+          <View style={styles.headerContent}>
+            <View style={styles.headerLeft}>
+              <View style={styles.headerTitleContainer}>
+                <Text style={styles.title}>Test History</Text>
+                <Text style={styles.subtitle}>
+                  {stats.total} test{stats.total !== 1 ? 's' : ''} • Manage laboratory tests
+                </Text>
+              </View>
             </View>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => setShowAddModal(true)}
+            >
+              <LinearGradient
+                colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.1)']}
+                style={styles.addButtonGradient}
+              >
+                <Ionicons name="add" size={24} color="white" />
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setShowAddModal(true)}
-          >
-            <Ionicons name="add" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+        </LinearGradient>
 
       {/* Statistics Cards */}
       <View style={styles.statsContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.statCard}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.statsScrollContent}
+        >
+          <LinearGradient
+            colors={['#667eea', '#764ba2']}
+            style={styles.statCard}
+          >
+            <View style={styles.statIconContainer}>
+              <Ionicons name="flask" size={24} color="white" />
+            </View>
             <Text style={styles.statNumber}>{stats.total}</Text>
             <Text style={styles.statLabel}>Total Tests</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats.pending}</Text>
-            <Text style={styles.statLabel}>Pending</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats.processing}</Text>
-            <Text style={styles.statLabel}>Processing</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats.completed}</Text>
-            <Text style={styles.statLabel}>Completed</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{stats.urgent}</Text>
-            <Text style={styles.statLabel}>Urgent</Text>
-          </View>
+          </LinearGradient>
+          
+          <LinearGradient
+            colors={['#ffecd2', '#fcb69f']}
+            style={styles.statCard}
+          >
+            <View style={styles.statIconContainer}>
+              <Ionicons name="time" size={24} color="#8B4513" />
+            </View>
+            <Text style={[styles.statNumber, { color: '#8B4513' }]}>{stats.pending}</Text>
+            <Text style={[styles.statLabel, { color: '#8B4513' }]}>Pending</Text>
+          </LinearGradient>
+          
+          <LinearGradient
+            colors={['#a8edea', '#fed6e3']}
+            style={styles.statCard}
+          >
+            <View style={styles.statIconContainer}>
+              <Ionicons name="sync" size={24} color="#2E8B57" />
+            </View>
+            <Text style={[styles.statNumber, { color: '#2E8B57' }]}>{stats.processing}</Text>
+            <Text style={[styles.statLabel, { color: '#2E8B57' }]}>Processing</Text>
+          </LinearGradient>
+          
+          <LinearGradient
+            colors={['#d299c2', '#fef9d7']}
+            style={styles.statCard}
+          >
+            <View style={styles.statIconContainer}>
+              <Ionicons name="checkmark-circle" size={24} color="#006400" />
+            </View>
+            <Text style={[styles.statNumber, { color: '#006400' }]}>{stats.completed}</Text>
+            <Text style={[styles.statLabel, { color: '#006400' }]}>Completed</Text>
+          </LinearGradient>
+          
+          <LinearGradient
+            colors={['#ff9a9e', '#fecfef']}
+            style={styles.statCard}
+          >
+            <View style={styles.statIconContainer}>
+              <Ionicons name="warning" size={24} color="#8B0000" />
+            </View>
+            <Text style={[styles.statNumber, { color: '#8B0000' }]}>{stats.urgent}</Text>
+            <Text style={[styles.statLabel, { color: '#8B0000' }]}>Urgent</Text>
+          </LinearGradient>
         </ScrollView>
       </View>
 
@@ -257,6 +323,7 @@ const HistoryScreen = () => {
       >
         {isLoading ? (
           <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#667eea" />
             <Text style={styles.loadingText}>Loading tests...</Text>
           </View>
         ) : filteredTests.length === 0 ? (
@@ -302,6 +369,7 @@ const HistoryScreen = () => {
         onSuccess={handleAddTest}
         patients={patients}
       />
+      </LinearGradient>
     </SafeAreaView>
   );
 };
@@ -309,11 +377,15 @@ const HistoryScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0f0f23',
+  },
+  mainGradient: {
+    flex: 1,
   },
   header: {
-    padding: 20,
-    paddingTop: 10,
+    paddingHorizontal: 20,
+    paddingTop: 15,
+    paddingBottom: 25,
   },
   headerContent: {
     flexDirection: 'row',
@@ -321,90 +393,121 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
     flex: 1,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: 'white',
+  headerTitleContainer: {
     marginBottom: 5,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: 'white',
+    marginBottom: 8,
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  addButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  statsContainer: {
-    backgroundColor: 'white',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  statCard: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 10,
-    marginHorizontal: 10,
-    alignItems: 'center',
-    minWidth: 80,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#667eea',
-    marginBottom: 5,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '500',
   },
-  filterContainer: {
-    backgroundColor: 'white',
+  addButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  addButtonGradient: {
+    padding: 14,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statsContainer: {
+    backgroundColor: 'transparent',
     paddingVertical: 15,
+    paddingHorizontal: 5,
+  },
+  statsScrollContent: {
+    paddingHorizontal: 8,
+    gap: 10,
+  },
+  statCard: {
+    padding: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+    minWidth: 90,
+    maxWidth: 95,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  statIconContainer: {
+    marginBottom: 8,
+    padding: 6,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  statNumber: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: 'white',
+    marginBottom: 2,
+    letterSpacing: -0.3,
+  },
+  statLabel: {
+    fontSize: 10,
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    opacity: 0.9,
+  },
+  filterContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingVertical: 18,
+    paddingHorizontal: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
   filterTab: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 20,
     marginHorizontal: 5,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     gap: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   filterTabActive: {
     backgroundColor: '#667eea',
     borderColor: '#667eea',
+    shadowOpacity: 0.2,
+    elevation: 5,
   },
   filterTabText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#667eea',
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   filterTabTextActive: {
     color: 'white',
   },
   filterCount: {
-    backgroundColor: '#e9ecef',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -415,59 +518,76 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   filterCountText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#666',
+    fontSize: 11,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   filterCountTextActive: {
     color: 'white',
   },
   content: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   loadingContainer: {
-    padding: 40,
+    padding: 60,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 16,
+    fontWeight: '500',
   },
   emptyState: {
     alignItems: 'center',
-    padding: 40,
+    padding: 60,
     marginTop: 50,
   },
   emptyIcon: {
     fontSize: 80,
     marginBottom: 20,
+    opacity: 0.7,
   },
   emptyTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 12,
     textAlign: 'center',
+    letterSpacing: -0.3,
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.6)',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 30,
+    lineHeight: 24,
+    paddingHorizontal: 20,
   },
   emptyAddButton: {
     backgroundColor: '#667eea',
-    padding: 15,
-    borderRadius: 10,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 16,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   emptyAddButtonText: {
     color: 'white',
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   testList: {
-    padding: 20,
+    padding: 15,
+    paddingTop: 10,
+    paddingBottom: 20,
   },
 });
 
