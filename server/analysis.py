@@ -110,7 +110,6 @@ class MalariaAnalyzer:
                         max_conf_species = parasite_type
                 
                 if max_conf_species:
-                    # ✅ NEW: Map parasite type codes to full names
                     parasite_type_names = {
                         'PF': 'Plasmodium Falciparum',
                         'PM': 'Plasmodium Malariae',

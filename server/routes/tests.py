@@ -93,7 +93,8 @@ def create_test():
         
         # Validate sample collection date
         try:
-            sample_collection_date = datetime.fromisoformat(data['sampleCollectionDate'].replace('Z', '+00:00'))
+            # Use local time instead of UTC
+            sample_collection_date = datetime.fromisoformat(data['sampleCollectionDate'].replace('Z', ''))
         except ValueError:
             return jsonify({'error': 'Invalid date format for sampleCollectionDate'}), 400
         
@@ -113,7 +114,16 @@ def create_test():
         if not current_user:
             return jsonify({'error': 'User not found'}), 404
         
-        # Create new test
+        # Prepare test data
+        test_data = {
+            'sampleType': data['sampleType'],
+            'sampleCollectionDate': sample_collection_date,
+            'priority': priority,
+            'testType': data.get('testType', 'malaria_detection'),
+            'clinicalNotes': data.get('clinicalNotes', {})
+        }
+        
+        # Create new test (removed overly restrictive duplicate prevention)
         test = Test(
             patient_id=data['patientId'],
             sample_type=data['sampleType'],
@@ -309,7 +319,11 @@ def create_diagnosis_result(test_id):
         # Check if diagnosis result already exists
         existing_result = DiagnosisResult.query.filter_by(test_id=test_id).first()
         if existing_result:
-            return jsonify({'error': 'Diagnosis result already exists for this test'}), 400
+            logger.info(f"Diagnosis result already exists for test {test_id}, returning existing result")
+            return jsonify({
+                'message': 'Diagnosis result already exists',
+                'diagnosisResult': existing_result.to_dict()
+            }), 200
         
         # Create diagnosis result
         diagnosis_result = DiagnosisResult(

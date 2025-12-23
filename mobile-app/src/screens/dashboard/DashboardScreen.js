@@ -11,7 +11,9 @@ import {
   Animated,
   Dimensions,
   Platform,
+  Image,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
@@ -24,6 +26,7 @@ const DashboardScreen = ({ navigation }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [serverIP, setServerIP] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
 
   // Revolutionary neural network animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -158,6 +161,29 @@ const DashboardScreen = ({ navigation }) => {
   useEffect(() => {
     checkServerConnection();
   }, []);
+
+  // Load profile picture from storage
+  const loadProfilePicture = async () => {
+    try {
+      // First try to load from AsyncStorage
+      const storedProfilePicture = await AsyncStorage.getItem(`profilePicture_${user?.id}`);
+      if (storedProfilePicture) {
+        setProfileImage(storedProfilePicture);
+      } else if (user?.avatar) {
+        // Fallback to user's avatar from user data
+        setProfileImage(user.avatar);
+      }
+    } catch (error) {
+      console.error('Error loading profile picture:', error);
+    }
+  };
+
+  // Load profile picture when user changes
+  useEffect(() => {
+    if (user?.id) {
+      loadProfilePicture();
+    }
+  }, [user?.id]);
 
   // Animation interpolations
   const rotateInterpolate = rotateAnim.interpolate({
@@ -392,12 +418,19 @@ const DashboardScreen = ({ navigation }) => {
             >
               <View style={styles.welcomeContent}>
                 <Animated.View style={[styles.avatarContainer, { transform: [{ scale: pulseAnim }] }]}>
-                  <LinearGradient
-                    colors={['#00d4ff', '#5b73ff']}
-                    style={styles.neuralAvatar}
-                  >
-                    <Ionicons name="person" size={30} color="#fff" />
-                  </LinearGradient>
+                  {profileImage ? (
+                    <View style={styles.profileImageContainer}>
+                      <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                      <View style={styles.profileImageBorder} />
+                    </View>
+                  ) : (
+                    <LinearGradient
+                      colors={['#00d4ff', '#5b73ff']}
+                      style={styles.neuralAvatar}
+                    >
+                      <Ionicons name="person" size={30} color="#fff" />
+                    </LinearGradient>
+                  )}
                   <Animated.View
                     style={[
                       styles.orbitingIndicator,
@@ -727,6 +760,36 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 20,
     elevation: 15,
+  },
+  profileImageContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    position: 'relative',
+    shadowColor: '#00d4ff',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 15,
+  },
+  profileImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  profileImageBorder: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    borderRadius: 32,
+    borderWidth: 2,
+    borderColor: '#00d4ff',
+    shadowColor: '#00d4ff',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
   },
   orbitingIndicator: {
     position: 'absolute',

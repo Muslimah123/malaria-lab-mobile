@@ -3,6 +3,7 @@
     "name": "malaria-lab-mobile",
     "slug": "malaria-lab-mobile",
     "version": "1.0.0",
+    "sdkVersion": "54.0.0",
     "platforms": [
       "ios",
       "android",

@@ -56,8 +56,8 @@ def get_dashboard():
             UploadSession.created_at >= start_date
         ).count()
         
-        # Recent tests (last 10)
-        recent_tests = Test.query.order_by(
+        # Recent tests (last 10) with patient relationship loaded
+        recent_tests = Test.query.join(Patient, Test.patient_id == Patient.id).order_by(
             Test.created_at.desc()
         ).limit(10).all()
         
@@ -130,8 +130,8 @@ def get_notifications():
         # Get recent activities that might be notifications
         notifications = []
         
-        # Recent test completions
-        recent_completions = Test.query.filter(
+        # Recent test completions with patient relationship loaded
+        recent_completions = Test.query.join(Patient, Test.patient_id == Patient.id).filter(
             Test.status == 'completed',
             Test.updated_at >= datetime.utcnow() - timedelta(hours=24)
         ).order_by(Test.updated_at.desc()).limit(5).all()

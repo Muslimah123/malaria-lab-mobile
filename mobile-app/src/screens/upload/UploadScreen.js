@@ -317,11 +317,11 @@ const UploadScreen = () => {
       
       // Transform data to match patientService expectations
       const transformedData = {
-        first_name: newPatientData.firstName,
-        last_name: newPatientData.lastName,
-        date_of_birth: newPatientData.dateOfBirth,
+        firstName: newPatientData.firstName,
+        lastName: newPatientData.lastName,
+        dateOfBirth: newPatientData.dateOfBirth,
         gender: newPatientData.gender,
-        phone_number: newPatientData.phoneNumber,
+        phoneNumber: newPatientData.phoneNumber,
         email: newPatientData.email,
       };
       
@@ -349,6 +349,7 @@ const UploadScreen = () => {
       setIsLoading(true);
       
       // Create test record
+      console.log('Creating new test record...');
       const testRecord = await testService.createTest({
         patient_id: selectedPatient.id,
         priority: testData.priority,
@@ -356,6 +357,7 @@ const UploadScreen = () => {
         clinical_notes: testData.clinicalNotes,
         status: 'pending',
       });
+      console.log('Test record created:', testRecord);
       
       // Create upload session
       const session = {
@@ -735,6 +737,7 @@ const UploadScreen = () => {
             <TextInput
               style={styles.searchInput}
               placeholder="Search by ID, name, or phone..."
+              placeholderTextColor="rgba(255, 255, 255, 0.6)"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -780,6 +783,7 @@ const UploadScreen = () => {
                 value={newPatientData.firstName}
                 onChangeText={(text) => setNewPatientData(prev => ({ ...prev, firstName: text }))}
                 placeholder="Enter first name"
+                placeholderTextColor="rgba(255, 255, 255, 0.6)"
               />
             </View>
             <View style={styles.formField}>
@@ -789,6 +793,7 @@ const UploadScreen = () => {
                 value={newPatientData.lastName}
                 onChangeText={(text) => setNewPatientData(prev => ({ ...prev, lastName: text }))}
                 placeholder="Enter last name"
+                placeholderTextColor="rgba(255, 255, 255, 0.6)"
               />
             </View>
       </View>
@@ -801,27 +806,32 @@ const UploadScreen = () => {
                 value={newPatientData.dateOfBirth}
                 onChangeText={(text) => setNewPatientData(prev => ({ ...prev, dateOfBirth: text }))}
                 placeholder="YYYY-MM-DD"
+                placeholderTextColor="rgba(255, 255, 255, 0.6)"
               />
             </View>
             <View style={styles.formField}>
               <Text style={styles.fieldLabel}>Gender *</Text>
               <View style={styles.genderOptions}>
-                {['Male', 'Female', 'Other'].map((gender) => (
+                {[
+                  { label: 'Male', value: 'male' },
+                  { label: 'Female', value: 'female' },
+                  { label: 'Other', value: 'other' }
+                ].map((gender) => (
                   <TouchableOpacity
-                    key={gender}
+                    key={gender.value}
                     style={[
                       styles.genderOption,
-                      newPatientData.gender === gender && styles.genderOptionActive
+                      newPatientData.gender === gender.value && styles.genderOptionActive
                     ]}
-                    onPress={() => setNewPatientData(prev => ({ ...prev, gender }))}
+                    onPress={() => setNewPatientData(prev => ({ ...prev, gender: gender.value }))}
                   >
                     <Text style={[
                       styles.genderOptionText,
-                      newPatientData.gender === gender && styles.genderOptionTextActive
+                      newPatientData.gender === gender.value && styles.genderOptionTextActive
                     ]}>
-                      {gender}
+                      {gender.label}
                     </Text>
-        </TouchableOpacity>
+                  </TouchableOpacity>
                 ))}
               </View>
             </View>
@@ -835,6 +845,7 @@ const UploadScreen = () => {
                 value={newPatientData.phoneNumber}
                 onChangeText={(text) => setNewPatientData(prev => ({ ...prev, phoneNumber: text }))}
                 placeholder="Enter phone number"
+                placeholderTextColor="rgba(255, 255, 255, 0.6)"
                 keyboardType="phone-pad"
               />
       </View>
@@ -845,6 +856,7 @@ const UploadScreen = () => {
                 value={newPatientData.email}
                 onChangeText={(text) => setNewPatientData(prev => ({ ...prev, email: text }))}
                 placeholder="Enter email"
+                placeholderTextColor="rgba(255, 255, 255, 0.6)"
                 keyboardType="email-address"
               />
     </View>
@@ -944,6 +956,7 @@ const UploadScreen = () => {
             value={testData.clinicalNotes}
             onChangeText={(text) => setTestData(prev => ({ ...prev, clinicalNotes: text }))}
             placeholder="Enter symptoms, duration, travel history, medications, additional notes..."
+            placeholderTextColor="rgba(255, 255, 255, 0.6)"
             multiline
             numberOfLines={4}
             textAlignVertical="top"
@@ -2386,7 +2399,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#4FC3F7',
     marginBottom: 16,
   },
   searchContainer: {
@@ -2554,7 +2567,7 @@ const styles = StyleSheet.create({
   priorityOptionText: {
     fontSize: 14,
     fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: '#333333',
   },
   priorityOptionTextActive: {
     color: '#fff',
@@ -2579,7 +2592,7 @@ const styles = StyleSheet.create({
   sampleTypeOptionText: {
     fontSize: 14,
     fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: '#333333',
   },
   sampleTypeOptionTextActive: {
     color: '#fff',

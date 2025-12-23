@@ -65,7 +65,11 @@ def create_upload_session():
         # Check if upload session already exists for this test
         existing_session = UploadSession.query.filter_by(test_id=data['testId']).first()
         if existing_session and existing_session.status in ['active', 'processing']:
-            return jsonify({'error': 'Upload session already exists for this test'}), 400
+            logger.info(f"Found existing upload session {existing_session.session_id} for test {data['testId']}")
+            return jsonify({
+                'message': 'Upload session already exists',
+                'session': existing_session.to_dict()
+            }), 200
         
         # Create new upload session
         session = UploadSession(

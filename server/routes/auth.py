@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import (
     create_access_token, 
     create_refresh_token, 
@@ -7,11 +7,16 @@ from flask_jwt_extended import (
     get_jwt
 )
 from werkzeug.security import generate_password_hash
+from werkzeug.utils import secure_filename
 from datetime import datetime
 import re
+import os
+import uuid
 
 from models.user import db, User
 from utils.validators import validate_email, validate_password, validate_username
+from middleware.fileUpload import validate_file_upload, save_uploaded_file
+from services.image_validation import validate_image_buffer
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -256,3 +261,75 @@ def change_password():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Password change failed', 'details': str(e)}), 500
+
+@auth_bp.route('/profile/avatar', methods=['POST'])
+@jwt_required()
+@validate_file_upload
+def upload_profile_avatar():
+    """Upload user profile avatar"""
+    try:
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Get validated files from middleware
+        files = request.files.getlist('avatar')
+        
+        if not files or len(files) == 0:
+            return jsonify({'error': 'No avatar image provided'}), 400
+        
+        if len(files) > 1:
+            return jsonify({'error': 'Only one avatar image allowed'}), 400
+        
+        file = files[0]
+        
+        # Generate unique filename
+        filename = secure_filename(file.filename)
+        file_extension = os.path.splitext(filename)[1].lower()
+        unique_filename = f"avatar_{user.id}_{uuid.uuid4()}{file_extension}"
+        
+        # Create profile avatars directory
+        avatar_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'avatars')
+        os.makedirs(avatar_dir, exist_ok=True)
+        
+        # Save file
+        file_path = save_uploaded_file(file, avatar_dir, unique_filename)
+        
+        # Validate image
+        file.seek(0)
+        file_content = file.read()
+        is_valid, metadata, errors = validate_image_buffer(file_content, filename)
+        
+        if not is_valid:
+            # Clean up the saved file
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            return jsonify({'error': 'Invalid image file', 'details': errors}), 400
+        
+        # Update user avatar path
+        avatar_url = f"/uploads/avatars/{unique_filename}"
+        user.avatar = avatar_url
+        user.updated_at = datetime.utcnow()
+        
+        # Remove old avatar if exists
+        if user.avatar and user.avatar != avatar_url:
+            old_avatar_path = os.path.join(current_app.config['UPLOAD_FOLDER'], user.avatar.replace('/uploads/', ''))
+            if os.path.exists(old_avatar_path):
+                try:
+                    os.remove(old_avatar_path)
+                except:
+                    pass  # Ignore errors when removing old avatar
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Avatar uploaded successfully',
+            'avatar_url': avatar_url,
+            'user': user.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Avatar upload failed', 'details': str(e)}), 500

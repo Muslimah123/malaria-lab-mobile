@@ -60,8 +60,6 @@ class DiagnosisResult(db.Model):
             detection['annotatedImageUrl'] = annotated_image_url
         
         self.detections.append(detection)
-        
-        # FIXED: Safe aggregation with None handling
         # Initialize totals if they are None
         if self.total_parasites is None:
             self.total_parasites = 0

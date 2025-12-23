@@ -14,7 +14,7 @@ class MalariaDetector:
                 raise FileNotFoundError(f"Model file not found at {model_path}")
             self.model = YOLO(model_path)
             
-            # ✅ NEW: Define valid parasite types (WBC is NOT a parasite!)
+            
             self.valid_parasite_types = {'PF', 'PM', 'PO', 'PV'}
             self.valid_wbc_types = {'WBC', 'wbc'}  # Handle case variations
             
@@ -34,7 +34,6 @@ class MalariaDetector:
             
             logger.info(f"Starting detection for image: {image_path} with confidence threshold: {confidence_threshold}")
             
-            # Try different inference methods for compatibility
             try:
                 # Method 1: Standard inference
                 results = self.model([image_path])

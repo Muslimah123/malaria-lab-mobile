@@ -361,7 +361,7 @@ const LoginScreen = ({ navigation }) => {
               ]}
             >
             
-            {/* Revolutionary Neural AI Logo Section */}
+            {/*  Neural AI Logo Section */}
             <Animated.View 
               style={[
                 styles.neuralLogoSection,
@@ -422,14 +422,14 @@ const LoginScreen = ({ navigation }) => {
               </View>
               
               <Text style={styles.neuralAppTitle}>MalariaLab</Text>
-              <Text style={styles.neuralAppSubtitle}>Neural AI Diagnostic Platform</Text>
+              <Text style={styles.neuralAppSubtitle}> AI Diagnostic Platform</Text>
               
               <View style={styles.neuralTaglineContainer}>
                 <Animated.View style={[
                   styles.taglinePulse,
                   { opacity: glowIntensity }
                 ]} />
-                <Text style={styles.neuralTagline}>🧬 Quantum Precision • ⚡ Neural Speed • 🔬 AI Reliability</Text>
+                <Text style={styles.neuralTagline}>🧬 Quantum Precision • ⚡ Speed • 🔬 AI Reliability</Text>
               </View>
             </Animated.View>
 
@@ -447,8 +447,8 @@ const LoginScreen = ({ navigation }) => {
                 colors={['rgba(0, 212, 255, 0.1)', 'rgba(91, 115, 255, 0.1)', 'rgba(156, 68, 255, 0.1)']}
                 style={styles.demoSectionBackground}
               >
-                <Text style={styles.neuralDemoTitle}>Neural Access Profiles</Text>
-                <Text style={styles.neuralDemoSubtitle}>Select your neural interface authorization level</Text>
+                <Text style={styles.neuralDemoTitle}> Access Profiles</Text>
+                <Text style={styles.neuralDemoSubtitle}>Select your interface authorization level</Text>
                 
                 <View style={styles.neuralDemoButtonsContainer}>
                   {demoCredentials.map((demoUser, index) => (
@@ -476,7 +476,7 @@ const LoginScreen = ({ navigation }) => {
                               <Text style={styles.neuralDemoRole}>{demoUser.role}</Text>
                               <View style={styles.neuralAccessLevel}>
                                 <Ionicons name="shield-checkmark" size={14} color="rgba(255,255,255,0.8)" />
-                                <Text style={styles.accessLevelText}>Neural Access Level {index + 1}</Text>
+                                <Text style={styles.accessLevelText}> Access Level {index + 1}</Text>
                               </View>
                             </View>
                             
@@ -638,6 +638,20 @@ const LoginScreen = ({ navigation }) => {
                   <Ionicons name="information-circle-outline" size={16} color="#667eea" />
                   <Text style={styles.infoText}>Use demo accounts above for quick testing</Text>
                 </View>
+
+                <TouchableOpacity 
+                  style={styles.serverConfigButton}
+                  onPress={() => navigation.navigate('ServerConfig')}
+                >
+                  <Ionicons name="server" size={20} color="#667eea" />
+                  <View style={styles.serverConfigText}>
+                    <Text style={styles.serverConfigTitle}>Configure Server</Text>
+                    <Text style={styles.serverConfigSubtitle}>
+                      Update IP or port before signing in
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#667eea" />
+                </TouchableOpacity>
               </LinearGradient>
             </Animated.View>
 
@@ -1097,6 +1111,33 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 6,
+  },
+  serverConfigButton: {
+    marginTop: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: 'rgba(102, 126, 234, 0.3)',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    backgroundColor: 'rgba(102, 126, 234, 0.08)',
+  },
+  serverConfigText: {
+    flex: 1,
+    marginLeft: 12,
+    marginRight: 8,
+  },
+  serverConfigTitle: {
+    color: '#1a1a2e',
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  serverConfigSubtitle: {
+    color: '#4c4f66',
+    fontSize: 13,
   },
   footer: {
     alignItems: 'center',

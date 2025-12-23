@@ -184,6 +184,22 @@ export const authService = {
     }
   },
 
+  // Upload profile avatar
+  async uploadProfileAvatar(formData) {
+    try {
+      const response = await api.post('/auth/profile/avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Upload avatar error:', error);
+      throw new Error(error.response?.data?.error || 'Failed to upload avatar');
+    }
+  },
+
   // Check if user is authenticated
   async isAuthenticated() {
     try {

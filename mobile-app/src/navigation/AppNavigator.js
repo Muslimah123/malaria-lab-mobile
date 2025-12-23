@@ -9,15 +9,20 @@ import { selectIsAuthenticated } from '../store/slices/authSlice';
 // Import screens
 import LoginScreen from '../screens/auth/LoginScreen';
 import DashboardScreen from '../screens/dashboard/DashboardScreen';
-import UploadScreen from '../screens/upload/UploadScreen';
+import NewUploadScreen from '../screens/upload/NewUploadScreen';
 import ResultsScreen from '../screens/results/ResultsScreen';
 import PatientScreen from '../screens/patient/PatientScreen';
 import PatientDetailScreen from '../screens/patient/PatientDetailScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
+import EditProfileScreen from '../screens/profile/EditProfileScreen';
+import ChangePasswordScreen from '../screens/profile/ChangePasswordScreen';
+import UserStatsScreen from '../screens/profile/UserStatsScreen';
+import AccountSecurityScreen from '../screens/profile/AccountSecurityScreen';
+import PreferencesScreen from '../screens/profile/PreferencesScreen';
+import ServerConfigScreen from '../screens/profile/ServerConfigScreen';
 import CaptureScreen from '../screens/capture/CaptureScreen';
 import HistoryScreen from '../screens/test/HistoryScreen';
 import TestDetailScreen from '../screens/test/TestDetailScreen';
-import SettingsScreen from '../screens/settings/SettingsScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -58,7 +63,7 @@ const MainTabs = () => {
       />
       <Tab.Screen 
         name="Upload" 
-        component={UploadScreen}
+        component={NewUploadScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="camera" size={size} color={color} />
@@ -106,16 +111,6 @@ const MainTabs = () => {
           tabBarLabel: 'Profile',
         }}
       />
-      <Tab.Screen 
-        name="Settings" 
-        component={SettingsScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings" size={size} color={color} />
-          ),
-          tabBarLabel: 'Settings',
-        }}
-      />
     </Tab.Navigator>
   );
 };
@@ -146,11 +141,53 @@ const AppNavigator = () => {
               beforeRemove: () => console.log('🎯 TestDetail screen removing')
             }}
           />
+          <Stack.Screen 
+            name="EditProfile" 
+            component={EditProfileScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen 
+            name="ChangePassword" 
+            component={ChangePasswordScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen 
+            name="UserStats" 
+            component={UserStatsScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen 
+            name="AccountSecurity" 
+            component={AccountSecurityScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen 
+            name="Preferences" 
+            component={PreferencesScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
         </>
       ) : (
         // Not authenticated - show login
         <Stack.Screen name="Login" component={LoginScreen} />
       )}
+      <Stack.Screen 
+        name="ServerConfig" 
+        component={ServerConfigScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack.Navigator>
   );
 };

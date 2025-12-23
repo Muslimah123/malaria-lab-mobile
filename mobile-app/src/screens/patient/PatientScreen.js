@@ -298,9 +298,9 @@ const PatientScreen = ({ navigation }) => {
                     </LinearGradient>
                   </Animated.View>
                   <View style={styles.headerTextContainer}>
-                    <Text style={styles.modernTitle}>Patient Registry</Text>
+                    <Text style={styles.modernTitle}>Registry</Text>
                     <Text style={styles.modernSubtitle}>
-                      Medical Records Database
+                      Medical Records
                     </Text>
                   </View>
                 </View>

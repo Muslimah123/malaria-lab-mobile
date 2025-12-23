@@ -175,7 +175,11 @@ class AIAnalysisService:
             existing_result = DiagnosisResult.query.filter_by(test_id=test_id).first()
             if existing_result:
                 logger.warning(f"Diagnosis result already exists for test: {test_id}")
-                return False
+                # Update test status to completed if it's not already
+                if test.status != 'completed':
+                    test.update_status('completed')
+                    db.session.commit()
+                return True
             
             # Calculate overall statistics from all images with robust None handling
             total_parasites = 0
@@ -423,7 +427,7 @@ class AIAnalysisService:
             upload_session = UploadSession.query.filter_by(session_id=test.upload_session.session_id).first()
             if upload_session:
                 upload_session.status = 'completed'
-                upload_session.updated_at = datetime.utcnow()
+                upload_session.updated_at = datetime.now()
                 logger.info(f"Upload session {upload_session.session_id} marked as completed")
             
             # Update patient test statistics

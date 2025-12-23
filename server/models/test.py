@@ -42,8 +42,8 @@ class Test(db.Model):
     
     quality_score = db.Column(db.Float)  # 0-100
     
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     
     # Relationships
     patient = db.relationship('Patient', back_populates='tests', lazy=True)
@@ -76,6 +76,51 @@ class Test(db.Model):
         
         if attempts >= max_attempts:
             raise ValueError(f"Could not generate unique test_id after {max_attempts} attempts")
+    
+    @staticmethod
+    def get_or_create_test_for_patient(patient_id, user_id, test_data):
+        """Get existing pending test or create new one to prevent duplicates"""
+        from datetime import timedelta
+        
+        # Check for existing pending test within last 5 minutes
+        recent_time = datetime.utcnow() - timedelta(minutes=5)
+        
+        existing_test = Test.query.filter(
+            Test.patient_id == patient_id,
+            Test.status == 'pending',
+            Test.created_at >= recent_time,
+            Test.created_by == user_id
+        ).first()
+        
+        if existing_test:
+            return existing_test, False  # Return existing test, not created
+        
+        # Create new test
+        new_test = Test(
+            patient_id=patient_id,
+            sample_type=test_data['sampleType'],
+            sample_collection_date=test_data['sampleCollectionDate'],
+            sample_collected_by=user_id,
+            technician_id=user_id,
+            created_by=user_id,
+            priority=test_data.get('priority', 'normal'),
+            test_type=test_data.get('testType', 'malaria_detection')
+        )
+        
+        # Set clinical notes if provided
+        if 'clinicalNotes' in test_data:
+            new_test.set_clinical_notes(
+                symptoms=test_data['clinicalNotes'].get('symptoms', []),
+                duration=test_data['clinicalNotes'].get('duration', ''),
+                severity=test_data['clinicalNotes'].get('severity', ''),
+                previous_treatment=test_data['clinicalNotes'].get('previousTreatment', ''),
+                additional_notes=test_data['clinicalNotes'].get('additionalNotes', '')
+            )
+        
+        # Ensure unique test_id
+        new_test.ensure_unique_test_id()
+        
+        return new_test, True  # Return new test, created
     
     def generate_test_id(self):
         """Generate a unique test ID in format TEST-YYYYMMDD-XXX"""
@@ -129,10 +174,10 @@ class Test(db.Model):
         self.status = new_status
         
         if new_status == 'processing':
-            self.processed_at = datetime.utcnow()
+            self.processed_at = datetime.now()
         elif new_status == 'completed':
             if self.processed_at is not None:
-                self.processing_time = (datetime.utcnow() - self.processed_at).total_seconds()
+                self.processing_time = (datetime.now() - self.processed_at).total_seconds()
     
     def set_clinical_notes(self, symptoms=None, duration=None, severity=None, previous_treatment=None, additional_notes=None):
         """Set clinical notes for the test"""
