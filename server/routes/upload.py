@@ -163,6 +163,12 @@ def upload_files(session_id):
                     size=len(file_content),
                     mimetype=file.content_type
                 )
+
+                # Mark file as completed so progress/status are accurate
+                try:
+                    session.update_file_status(unique_filename, 'completed')
+                except Exception as e:
+                    logger.warning(f"Failed to update file status for {unique_filename}: {str(e)}")
                 
                 uploaded_files.append({
                     'filename': unique_filename,
@@ -181,6 +187,10 @@ def upload_files(session_id):
         
         # Update session progress
         session.update_progress()
+
+        # If we successfully uploaded any files, mark session as ready for AI processing
+        if uploaded_files:
+            session.status = 'uploaded'
         
         # Update test with images if files were uploaded successfully
         if uploaded_files and session.test_id:

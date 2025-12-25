@@ -62,20 +62,12 @@ Thumbs.db
 .expo/
 .expo-shared/
 
-# YOLOv12 (external dependency)
-yolov12/
-
 # Uploads and temporary files
 server/uploads/
 server/uploads/**
 *.tmp
 *.temp
 
-# Large model files
-*.pt
-*.pth
-*.onnx
-*.engine
 
 # Environment variables
 .env.local

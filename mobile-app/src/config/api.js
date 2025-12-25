@@ -7,6 +7,7 @@ const API_BASE_URL_STORAGE_KEY = 'apiBaseUrl';
 const DEV_CONFIG = {
   // Try multiple common IPs automatically (campus defaults + localhost for dev)
   POSSIBLE_BASE_URLS: [
+    'http://192.168.1.86:5000/api',  // Your specific IP
     'http://172.29.106.158:5000/api',  // Campus server (default)
     'http://192.168.1.168:5000/api', // Previous campus IP (backup)
     'http://172.20.10.3:5000/api',   // Backup hotspot IP
@@ -99,37 +100,11 @@ const discoverApiUrl = async () => {
 export const TIMEOUT = DEV_CONFIG.TIMEOUT;
 export const DEBUG = DEV_CONFIG.DEBUG;
 
-// Auto-discovered API base URL, falling back to stored preference
-export const getApiBaseUrl = async () => {
-  const stored = await getStoredBaseUrl();
-  if (stored) {
-    return stored;
-  }
-  return await discoverApiUrl();
-};
+// Hard-code base URL for local iOS simulator testing
+export const API_BASE_URL = 'http://127.0.0.1:5000/api';
 
-export const updateApiBaseUrl = async (newBaseUrl) => {
-  if (!newBaseUrl) {
-    return null;
-  }
-  console.log(`📡 API base URL updated to: ${newBaseUrl}`);
-  return await persistBaseUrl(newBaseUrl);
-};
+// Bypass discovery for now and always use the hard-coded base URL
+export const getApiBaseUrl = async () => API_BASE_URL;
 
-export const clearApiBaseUrl = async () => {
-  discoveredBaseUrl = null;
-  try {
-    await AsyncStorage.removeItem(API_BASE_URL_STORAGE_KEY);
-  } catch (error) {
-    console.warn('⚠️ Unable to clear stored API base URL:', error?.message || error);
-  }
-};
-
-// Legacy export for backward compatibility
-export const API_BASE_URL = DEV_CONFIG.POSSIBLE_BASE_URLS[0]; // Fallback
-
-export const getApiUrl = async (endpoint) => {
-  const baseUrl = await getApiBaseUrl();
-  return `${baseUrl}${endpoint}`;
-};
+export const getApiUrl = async (endpoint) => `${API_BASE_URL}${endpoint}`;
 

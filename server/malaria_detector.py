@@ -1,8 +1,30 @@
 
+import sys
+import os
+
+os.environ['ULTRALYTICS_DICT_SYNC'] = 'False'
+os.environ['YOLO_VERBOSE'] = 'False'
+import matplotlib
+matplotlib.use('Agg') 
+
+# 2. SETUP PATHS
+current_file = os.path.abspath(__file__)
+server_dir = os.path.dirname(current_file)
+project_root = os.path.dirname(server_dir)
+yolov12_path = os.path.join(project_root, 'yolov12')
+
+# 3. USE APPEND (Not insert) TO AVOID NAMING CONFLICTS
+if os.path.exists(yolov12_path):
+    if yolov12_path not in sys.path:
+        sys.path.append(yolov12_path) # Changed from insert(0,...) to append
+    print(f"✓ Using custom YOLOv12")
+
+
 from ultralytics import YOLO
 import logging
-import os
 from typing import Tuple, Dict, Optional, List
+
+# ... rest of your existing code stays the same
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +34,7 @@ class MalariaDetector:
         try:
             if not os.path.exists(model_path):
                 raise FileNotFoundError(f"Model file not found at {model_path}")
-            self.model = YOLO(model_path)
+            self.model = YOLO(model_path, task="detect")
             
             
             self.valid_parasite_types = {'PF', 'PM', 'PO', 'PV'}
@@ -36,7 +58,8 @@ class MalariaDetector:
             
             try:
                 # Method 1: Standard inference
-                results = self.model([image_path])
+                #results = self.model([image_path])
+                results = self.model.predict(image_path, conf=confidence_threshold, verbose=False)
             except AttributeError as e:
                 if "'AAttn' object has no attribute 'qkv'" in str(e):
                     logger.warning("Standard inference failed, trying alternative method...")

@@ -245,19 +245,25 @@ const NewUploadScreen = () => {
         status: 'pending',
       });
 
-      // Create upload session
+      // Create upload session on the backend for this test
+      const sessionResponse = await api.post('/upload/session', {
+        testId: testRecord.id,
+      });
+
+      const sessionData = sessionResponse.data?.session || sessionResponse.data;
+
       const session = {
-        id: `SESSION-${Date.now()}`,
+        sessionId: sessionData.sessionId,
         testId: testRecord.id,
         patientId: selectedPatient.id,
-        status: 'created',
-        createdAt: new Date().toISOString(),
+        status: sessionData.status,
+        createdAt: sessionData.createdAt,
       };
       
       setUploadSession(session);
 
-      // Upload images to backend
-      await uploadImagesToBackend(testRecord.id);
+      // Upload images to backend using the created upload session
+      await uploadImagesToBackend(session.sessionId, testRecord.id);
 
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to submit test');
@@ -267,7 +273,7 @@ const NewUploadScreen = () => {
     }
   };
 
-  const uploadImagesToBackend = async (testId) => {
+  const uploadImagesToBackend = async (sessionId, testId) => {
     try {
       setIsProcessing(true);
       setProcessingProgress(0);
@@ -293,10 +299,10 @@ const NewUploadScreen = () => {
         });
       });
 
-      console.log('Uploading images to backend...');
+      console.log('Uploading images to backend for session:', sessionId);
       
-      // Upload to backend
-      const uploadResponse = await api.post(`/upload/${testId}`, formData, {
+      // Upload to backend (files are tied to the upload session)
+      const uploadResponse = await api.post(`/upload/files/${sessionId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -304,12 +310,20 @@ const NewUploadScreen = () => {
 
       console.log('Upload response:', uploadResponse.data);
       
-      if (uploadResponse.data.success) {
-        setProcessingStage('Images uploaded successfully');
+      if (uploadResponse.status === 200) {
+        setProcessingStage('Images uploaded successfully. Starting AI analysis...');
         setProcessingProgress(50);
+
+        // Trigger AI processing on the backend
+        console.log('Starting AI processing for session:', sessionId, 'test:', testId);
+        const startResponse = await api.post('/upload/start-processing', {
+          sessionId,
+          testId,
+        });
+        console.log('Start processing response:', startResponse.data);
         
         // Start monitoring progress
-        startProgressMonitoring(testId);
+        startProgressMonitoring(sessionId, testId);
       } else {
         throw new Error(uploadResponse.data.error || 'Upload failed');
       }
@@ -321,13 +335,13 @@ const NewUploadScreen = () => {
     }
   };
 
-  const startProgressMonitoring = (testId) => {
+  const startProgressMonitoring = (sessionId, testId) => {
     const monitoringStartTime = Date.now();
-    console.log('Starting progress monitoring for test:', testId);
+    console.log('Starting progress monitoring for session:', sessionId);
 
     const interval = setInterval(async () => {
       try {
-        const response = await api.get(`/upload/progress/${testId}`);
+        const response = await api.get(`/upload/progress/${sessionId}`);
         const progress = response.data;
         console.log('Progress update:', progress);
         
@@ -416,6 +430,8 @@ const NewUploadScreen = () => {
       
       // Results are ready!
       console.log('Results ready:', results);
+      console.log('parasiteWbcRatio in results:', results?.parasiteWbcRatio);
+      console.log('Full results object:', JSON.stringify(results, null, 2));
       
       // Update state with results
       setUploadSession(prev => ({
@@ -1067,9 +1083,16 @@ const NewUploadScreen = () => {
         {renderStepIndicator()}
 
         {/* Content */}
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {renderCurrentStep()}
-        </ScrollView>
+        {currentStep === 3 ? (
+          // Avoid nesting FlatList (VirtualizedList) inside a ScrollView
+          <View style={styles.content}>
+            {renderCurrentStep()}
+          </View>
+        ) : (
+          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            {renderCurrentStep()}
+          </ScrollView>
+        )}
 
         {/* Navigation */}
         <View style={styles.navigation}>
