@@ -142,13 +142,12 @@ class AIAnalysisService:
                 logger.error(f"Test {test_id} not found")
                 return False
 
-            # Calculate totals
-            total_parasites = sum(int(r.get('parasiteCount', 0) or 0) for r in all_results)
-            total_wbcs = sum(int(r.get('whiteBloodCellsDetected', 0) or 0) for r in all_results)
-            
-            logger.info(f"=== DIAGNOSIS RESULT DEBUG ===")
-            logger.info(f"Total parasites calculated: {total_parasites}")
-            logger.info(f"Total WBCs calculated: {total_wbcs}")
+            # NOTE: do not pre-sum totals here because each call to
+            # DiagnosisResult.add_detection will increment the stored
+            # totals. We'll allow add_detection to accumulate per-image
+            # values and compute overall totals after adding detections
+            # to avoid double-counting.
+            logger.info("=== DIAGNOSIS RESULT DEBUG ===")
             
             # ✅ CALCULATE MOST PROBABLE PARASITE
             most_probable = None
@@ -168,18 +167,18 @@ class AIAnalysisService:
             
             logger.info(f"Most probable parasite: {most_probable} with confidence {max_confidence}")
             
-            # ✅ CALCULATE PARASITE/WBC RATIO
-            parasite_wbc_ratio = total_parasites / total_wbcs if total_wbcs > 0 else 0.0
-            logger.info(f"Parasite/WBC ratio: {parasite_wbc_ratio}")
-            
-            # Create diagnosis result with all calculated values
+            # Do not pre-calculate totals here; create a DiagnosisResult
+            # with zeroed totals and let per-image add_detection calls
+            # accumulate the totals. We'll compute the final ratio after
+            # all detections have been added.
+            has_parasites = any(len(r.get('parasitesDetected', [])) > 0 for r in all_results)
             diagnosis_result = DiagnosisResult(
                 test_id=test_id,
-                status='POSITIVE' if total_parasites > 0 else 'NEGATIVE',
+                status='POSITIVE' if has_parasites else 'NEGATIVE',
                 model_version='YOLOv12-1.0',
-                total_parasites=total_parasites,
-                total_wbcs=total_wbcs,
-                parasite_wbc_ratio=parasite_wbc_ratio  # ✅ SET RATIO
+                total_parasites=0,
+                total_wbcs=0,
+                parasite_wbc_ratio=0.0
             )
             
             # ✅ SET MOST PROBABLE PARASITE
@@ -231,6 +230,15 @@ class AIAnalysisService:
                     annotated_image_url=annotated_url
                 )
 
+            # Compute final parasite/WBC ratio from accumulated totals
+            try:
+                if diagnosis_result.total_wbcs and diagnosis_result.total_wbcs > 0:
+                    diagnosis_result.parasite_wbc_ratio = diagnosis_result.total_parasites / diagnosis_result.total_wbcs
+                else:
+                    diagnosis_result.parasite_wbc_ratio = 0.0
+            except Exception:
+                diagnosis_result.parasite_wbc_ratio = 0.0
+
             # Calculate severity and confidence
             diagnosis_result.calculate_severity()
             diagnosis_result.calculate_overall_confidence()  # ✅ CALCULATE CONFIDENCE
@@ -245,6 +253,13 @@ class AIAnalysisService:
             
             # Save to database
             db.session.add(diagnosis_result)
+            # Recalculate and persist test quality score so API responses include it
+            try:
+                test.calculate_quality_score()
+                db.session.add(test)
+            except Exception as e:
+                logger.warning(f"Failed to calculate/persist test quality score: {e}")
+
             test.update_status('completed')
             db.session.commit()
             
