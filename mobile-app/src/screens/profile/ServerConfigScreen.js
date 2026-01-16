@@ -265,7 +265,7 @@ const ServerConfigScreen = ({ navigation }) => {
               <View style={styles.infoItem}>
                 <Ionicons name="shield-checkmark" size={20} color="#4FC3F7" />
                 <Text style={styles.infoText}>
-                  Default port is 5000 (http://IP:5000/api)
+                  Default port is 5002 (http://IP:5002/api)
                 </Text>
               </View>
             </View>

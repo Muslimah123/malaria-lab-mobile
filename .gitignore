@@ -68,6 +68,25 @@ server/uploads/**
 *.tmp
 *.temp
 
+# Model weights (too large for git)
+*.pt
+*.pth
+*.onnx
+*.weights
+*.h5
+*.pb
+
+# Research artifacts (large files)
+research/results/**/*.png
+research/results/**/*.jpg
+research/results/**/*.pkl
+research/results/**/*.npy
+research/figures/**/*.png
+research/figures/**/*.jpg
+research/figures/**/*.pdf
+research/datasets/**/images/
+research/datasets/**/data/
+
 
 # Environment variables
 .env.local

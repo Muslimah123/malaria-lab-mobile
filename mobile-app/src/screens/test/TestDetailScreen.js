@@ -134,7 +134,7 @@ const TestDetailScreen = ({ route, navigation }) => {
       console.log('🧪 [TestDetail] API Base URL:', baseUrl);
     } catch (error) {
       console.warn('🧪 [TestDetail] Failed to get API base URL:', error);
-      setApiBaseUrl('http://localhost:5000'); // Fallback
+      setApiBaseUrl('http://localhost:5002'); // Fallback
     }
   };
 

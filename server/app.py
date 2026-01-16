@@ -4,6 +4,8 @@ from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from datetime import timedelta, datetime
 import os
+import sys
+import argparse
 import logging
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
@@ -191,6 +193,13 @@ def create_app():
     return app
 
 if __name__ == '__main__':
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description='Run the Malaria Lab Flask server')
+    parser.add_argument('--port', type=int, default=None, help='Port to run the server on')
+    parser.add_argument('--host', type=str, default=None, help='Host to bind the server to')
+    parser.add_argument('--debug', action='store_true', help='Run in debug mode')
+    args = parser.parse_args()
+    
     app = create_app()
     
     # Create database tables
@@ -198,9 +207,14 @@ if __name__ == '__main__':
         db.create_all()
         print("Database tables created successfully!")
     
+    # Determine port: command-line argument > environment variable > default
+    port = args.port if args.port is not None else int(os.getenv('PORT', 5000))
+    host = args.host if args.host is not None else os.getenv('HOST', '0.0.0.0')
+    debug = args.debug if args.debug else (os.getenv('FLASK_ENV') == 'development')
+    
     # Run the app
     app.run(
-        host=os.getenv('HOST', '0.0.0.0'),
-        port=int(os.getenv('PORT', 5000)),
-        debug=os.getenv('FLASK_ENV') == 'development'
+        host=host,
+        port=port,
+        debug=debug
     )

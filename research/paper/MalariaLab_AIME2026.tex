@@ -1,0 +1,411 @@
+% MalariaLab: Mobile Point-of-Care Malaria Diagnosis Using Deep Learning-Based Multi-Species Plasmodium Detection
+% AIME 2026 Submission
+% Format: Springer LNCS/LNAI
+
+\documentclass[runningheads]{llncs}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{soul}
+
+% For review - remove author info for double-blind
+\renewcommand\UrlFont{\color{blue}\rmfamily}
+
+\begin{document}
+
+\title{MalariaLab: Mobile Point-of-Care Malaria Diagnosis Using Deep Learning-Based Multi-Species \textit{Plasmodium} Detection}
+
+%% IMPORTANT: Remove author info for double-blind review
+%% Uncomment for camera-ready version
+% \author{Author Name\inst{1} \and Author Name\inst{2}}
+% \authorrunning{Author et al.}
+% \institute{Institution 1, City, Country \and
+% Institution 2, City, Country\\
+% \email{email@institution.edu}}
+
+\maketitle
+
+\begin{abstract}
+Malaria remains a leading cause of morbidity and mortality in tropical regions, with accurate diagnosis being critical for effective treatment. Traditional microscopic examination requires trained personnel and laboratory infrastructure often unavailable in resource-limited settings. We present MalariaLab, a mobile point-of-care diagnostic system leveraging deep learning for automated detection and species identification of malaria parasites in blood smear images. Our system employs a YOLOv12-based object detection model capable of identifying four \textit{Plasmodium} species (\textit{P. falciparum}, \textit{P. malariae}, \textit{P. ovale}, and \textit{P. vivax}) alongside white blood cells for parasitemia quantification. The model achieves [XX]\% precision and [XX]\% recall on our test dataset, with mAP@0.5 of [XX]\%. Integrated into a cross-platform mobile application, MalariaLab enables healthcare workers to capture blood smear images, receive real-time AI-assisted diagnosis, and manage patient records. Our system demonstrates the potential for AI-powered mobile health solutions to expand access to quality malaria diagnostics.
+
+\keywords{Malaria detection \and Deep learning \and YOLOv12 \and Mobile health \and Point-of-care diagnostics \and Object detection}
+\end{abstract}
+
+%================================================================================
+\section{Introduction}
+%================================================================================
+
+Malaria is a life-threatening parasitic disease caused by \textit{Plasmodium} parasites transmitted through infected female \textit{Anopheles} mosquitoes. Despite significant progress in global malaria control, the disease poses a substantial public health burden, particularly in sub-Saharan Africa. According to the World Health Organization (WHO), there were an estimated 249 million malaria cases and 608,000 malaria-related deaths globally in 2022, with children under five accounting for approximately 80\% of deaths in Africa~\cite{who2023}.
+
+Accurate and timely diagnosis is fundamental to effective malaria case management. The gold standard---microscopic examination of Giemsa-stained blood smears---requires trained microscopists, quality reagents, and functional laboratory infrastructure~\cite{who2016microscopy}. In many endemic regions, these resources are scarce, leading to presumptive treatment that contributes to drug resistance and missed diagnoses~\cite{amexo2004}.
+
+Rapid diagnostic tests (RDTs) have expanded diagnostic access but have limitations including variable sensitivity at low parasitemia, inability to quantify parasite density, and challenges in species differentiation~\cite{moody2002,berhane2018}. Microscopy remains essential for species identification, treatment monitoring, and quality assurance.
+
+The convergence of advances in deep learning with smartphone ubiquity presents an opportunity to address the malaria diagnostic gap. Computer-aided diagnosis (CAD) systems can potentially democratize access to expert-level microscopy by automating parasite detection and classification~\cite{poostchi2018}.
+
+In this paper, we present MalariaLab, an end-to-end mobile point-of-care system for malaria diagnosis. Our main contributions are:
+
+\begin{enumerate}
+    \item \textbf{Multi-species detection}: Unlike systems focusing on binary classification, MalariaLab identifies four \textit{Plasmodium} species (\textit{P. falciparum}, \textit{P. malariae}, \textit{P. ovale}, \textit{P. vivax}), enabling species-appropriate treatment.
+
+    \item \textbf{Parasitemia quantification}: By detecting white blood cells alongside parasites, our system calculates parasite/WBC ratio for standardized parasitemia measurement.
+
+    \item \textbf{YOLOv12-based detection}: We employ the latest YOLO architecture for efficient detection suitable for resource-constrained deployment.
+
+    \item \textbf{Complete mobile ecosystem}: Beyond the AI model, we contribute a fully functional mobile application with patient management, test tracking, and result visualization.
+
+    \item \textbf{Comprehensive evaluation}: We provide rigorous evaluation including per-species analysis, baseline comparisons, and ablation studies.
+\end{enumerate}
+
+%================================================================================
+\section{Related Work}
+%================================================================================
+
+\subsection{Traditional Malaria Diagnosis}
+
+Microscopic examination of Giemsa-stained blood smears has been the diagnostic cornerstone for over a century~\cite{ross1897}. Skilled microscopists can detect parasitemia as low as 50-100 parasites/$\mu$L and differentiate species based on morphological features~\cite{wongsrichanalai2007}. However, microscopy is labor-intensive, subject to reader fatigue, and requires 6-12 months of training~\cite{who2016microscopy}. Studies document substantial inter-observer variability, particularly for species identification~\cite{kahama2011}.
+
+RDTs detect \textit{Plasmodium}-specific antigens through immunochromatographic methods~\cite{moody2002}. While revolutionizing diagnosis in resource-limited settings, RDTs cannot quantify parasitemia, have reduced sensitivity below 100-200 parasites/$\mu$L, and face challenges from \textit{pfhrp2/3} gene deletions~\cite{berhane2018,gatton2015}. Molecular methods (PCR, LAMP) offer superior sensitivity but require laboratory infrastructure~\cite{cnops2011}.
+
+\subsection{Deep Learning for Malaria Detection}
+
+Deep learning application to malaria diagnosis gained momentum with CNN-based classification of infected cells~\cite{liang2016}. Rajaraman et al.~\cite{rajaraman2018} evaluated pre-trained architectures achieving over 95\% accuracy on the NIH dataset. Subsequent work explored attention mechanisms~\cite{fuhad2020}, ensemble methods~\cite{kassim2020}, and lightweight architectures~\cite{masud2022}.
+
+Object detection approaches have emerged as more clinically realistic, operating on whole fields rather than pre-segmented cells~\cite{torres2018}. Hung et al.~\cite{hung2017} applied Faster R-CNN for parasite detection. Yang et al.~\cite{yang2017} compared detection architectures, finding YOLOv3 offered the best speed-accuracy trade-off. Recent work explored YOLOv4~\cite{abdurahman2019}, YOLOv5~\cite{hemachandran2023}, and YOLOv8~\cite{sultani2023} for malaria detection.
+
+Species identification adds complexity as morphological differences are subtle. Vijayalakshmi and Kanna~\cite{vijayalakshmi2020} developed multi-class CNN achieving 95\% accuracy across species. However, most systems focus on single-species detection or treat classification separately.
+
+\subsection{YOLO Architectures in Medical Imaging}
+
+YOLO~\cite{redmon2016} revolutionized detection by framing it as single regression, enabling real-time inference. YOLOv4~\cite{bochkovskiy2020} introduced CSPDarknet and PANet. YOLOv8~\cite{jocher2023yolov8} introduced anchor-free detection achieving state-of-the-art results.
+
+YOLOv12 introduces area-based attention mechanisms and optimized detection heads for improved small object detection---relevant for parasites in blood smears. YOLO has been applied to tumor detection~\cite{malik2023}, cell detection~\cite{jiang2022}, and parasitological diagnosis~\cite{kudisthalert2021}.
+
+\subsection{Mobile Health for Malaria}
+
+mHealth interventions show promise for malaria case management~\cite{zurovac2011,thondoo2021}. Smartphone microscopy using external lenses has been explored~\cite{breslauer2009}, though requiring additional hardware. Software-only approaches processing images from conventional microscopes offer scalability~\cite{quinn2011,tek2009}. MalariaLab contributes an integrated ecosystem combining AI analysis with patient management.
+
+%================================================================================
+\section{System Architecture}
+%================================================================================
+
+\subsection{Overview}
+
+MalariaLab follows a three-tier architecture (Figure~\ref{fig:architecture}): mobile client for user interaction, application server hosting REST API and AI inference, and data layer for persistent storage. AI inference occurs server-side while the mobile client provides responsive interface and offline capability.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/figure1_system_architecture.pdf}
+\caption{MalariaLab system architecture. The mobile client handles image capture and user interaction. The server layer hosts REST APIs and YOLOv12 inference engine. The data layer persists patient records and diagnostic results.}
+\label{fig:architecture}
+\end{figure}
+
+The workflow proceeds: (1) healthcare workers authenticate and access patient records; (2) capture blood smear images using smartphone camera attached to microscope; (3) images uploaded to server for YOLOv12 analysis; (4) results returned and displayed; (5) clinician reviews and confirms diagnosis; (6) results persisted for reporting.
+
+\subsection{Mobile Application Layer}
+
+The client is developed using React Native (v0.81.5) with Expo SDK (v54), enabling cross-platform deployment from single codebase. Key modules include:
+
+\textbf{Authentication}: JWT-based authentication with role-based access control (technician, supervisor, administrator). Access tokens expire after 1 hour with automatic refresh.
+
+\textbf{Patient Management}: CRUD operations for patient records with unique identifiers (PAT-YYYYMMDD-XXX).
+
+\textbf{Image Capture}: Device camera integration with manual focus, flash control, and local validation before upload.
+
+\textbf{Results Display}: Visualizes detections with color-coded bounding boxes (parasites: red, WBCs: blue), tabulated counts, and diagnostic interpretation.
+
+State management uses Redux Toolkit with AsyncStorage caching for offline access.
+
+\subsection{Application Server Layer}
+
+The backend implements RESTful API using Flask (v2.3.3) with endpoints:
+\begin{itemize}
+    \item \texttt{/api/auth/*}: Authentication (register, login, refresh)
+    \item \texttt{/api/patients/*}: Patient CRUD with pagination
+    \item \texttt{/api/tests/*}: Test creation and status management
+    \item \texttt{/api/upload/*}: Session-based upload with analysis
+\end{itemize}
+
+Image upload follows session-based protocol: (1) session creation; (2) validated image upload; (3) synchronous AI inference; (4) result persistence; (5) session completion.
+
+\subsection{AI Inference Engine}
+
+\subsubsection{Model Architecture}
+
+YOLOv12 follows single-stage detection, predicting bounding boxes and class probabilities directly (Figure~\ref{fig:yolo}). The architecture comprises:
+
+\textbf{Backbone (CSPDarknet)}: Extracts hierarchical features using Cross-Stage Partial connections, producing multi-scale feature maps at 80$\times$80, 40$\times$40, and 20$\times$20 resolutions.
+
+\textbf{Neck (PANet)}: Fuses features across scales through bottom-up and top-down pathways.
+
+\textbf{Detection Head}: Produces predictions at three scales, outputting bounding box coordinates, objectness score, and class probabilities for five classes. YOLOv12 employs anchor-free detection.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/figure2_yolo_architecture.pdf}
+\caption{YOLOv12 architecture for malaria detection. The backbone extracts multi-scale features, the neck fuses features, and the detection head produces bounding boxes with class predictions.}
+\label{fig:yolo}
+\end{figure}
+
+\subsubsection{Detection Classes}
+
+The model distinguishes five classes:
+\begin{itemize}
+    \item \textbf{PF} (\textit{P. falciparum}): Most virulent, characterized by small ring-stage trophozoites
+    \item \textbf{PM} (\textit{P. malariae}): Band-form trophozoites, 72-hour cycle
+    \item \textbf{PO} (\textit{P. ovale}): Oval-shaped infected cells, endemic in West Africa
+    \item \textbf{PV} (\textit{P. vivax}): Most widespread, enlarged cells with Sch\"uffner's dots
+    \item \textbf{WBC}: For parasitemia quantification via parasite/WBC ratio
+\end{itemize}
+
+\subsubsection{Inference Pipeline}
+
+Processing each image: (1) resize to 640$\times$640 with letterbox padding, normalize to [0,1]; (2) forward pass through network; (3) decode predictions, filter by confidence threshold (default: 0.26), apply NMS; (4) classify detections, separate parasites from WBCs; (5) calculate parasite count, WBC count, and ratio.
+
+\subsection{Data Layer}
+
+SQLite stores structured data (users, patients, tests, diagnosis results, activity logs) with filesystem storage for images. The schema supports audit trails for compliance.
+
+%================================================================================
+\section{Materials and Methods}
+%================================================================================
+
+\subsection{Dataset}
+
+% [FILL IN YOUR DATASET DETAILS]
+We compiled a dataset of [X,XXX] blood smear images from [source]. Images were captured at 100$\times$ magnification. Ground truth annotations were provided by [expert pathologists] using [annotation tool].
+
+The dataset contains [X,XXX] parasite annotations: \textit{P. falciparum} (n=[X,XXX]), \textit{P. malariae} (n=[XXX]), \textit{P. ovale} (n=[XXX]), \textit{P. vivax} (n=[XXX]), and [X,XXX] WBC annotations. Data was split into training (70\%), validation (15\%), and test (15\%) with stratification.
+
+\subsection{Training Procedure}
+
+% [FILL IN YOUR TRAINING DETAILS]
+Training used Ultralytics YOLOv12-[variant] initialized with COCO pre-trained weights. Configuration: [XXX] epochs, batch size [XX], SGD optimizer (momentum=0.9, weight decay=0.0005), cosine annealing learning rate (0.01 to 0.0001).
+
+Data augmentation: mosaic composition, random flips (0.5), scaling (0.5-1.5$\times$), HSV jittering, rotation ($\pm$10$^\circ$). Input size: 640$\times$640.
+
+Training performed on [GPU specification] for approximately [XX] hours. Best model selected by highest mAP@0.5 on validation set.
+
+\subsection{Evaluation Metrics}
+
+We report precision, recall, F1-score, and mean average precision at IoU 0.5 (mAP@0.5) and IoU 0.5-0.95 (mAP@0.5:0.95). Clinical metrics include sensitivity, specificity, PPV, and NPV for malaria detection.
+
+\subsection{Baseline Methods}
+
+Comparison against YOLOv5 and YOLOv8 trained with identical settings for fair comparison.
+
+%================================================================================
+\section{Results}
+%================================================================================
+
+% [FILL IN AFTER RUNNING EVALUATION]
+
+\subsection{Overall Performance}
+
+% Table: Overall metrics
+\begin{table}[t]
+\centering
+\caption{Overall performance metrics on test set}
+\label{tab:overall}
+\begin{tabular}{lc}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Precision & 0.XX $\pm$ 0.XX \\
+Recall & 0.XX $\pm$ 0.XX \\
+F1-Score & 0.XX $\pm$ 0.XX \\
+mAP@0.5 & 0.XX \\
+mAP@0.5:0.95 & 0.XX \\
+\midrule
+Sensitivity & 0.XX \\
+Specificity & 0.XX \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Per-Class Performance}
+
+% Table: Per-class metrics
+\begin{table}[t]
+\centering
+\caption{Per-class detection performance}
+\label{tab:perclass}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\
+\midrule
+\textit{P. falciparum} (PF) & 0.XX & 0.XX & 0.XX \\
+\textit{P. malariae} (PM) & 0.XX & 0.XX & 0.XX \\
+\textit{P. ovale} (PO) & 0.XX & 0.XX & 0.XX \\
+\textit{P. vivax} (PV) & 0.XX & 0.XX & 0.XX \\
+WBC & 0.XX & 0.XX & 0.XX \\
+\midrule
+\textbf{Average} & \textbf{0.XX} & \textbf{0.XX} & \textbf{0.XX} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Baseline Comparison}
+
+% Table: Comparison
+\begin{table}[t]
+\centering
+\caption{Comparison with baseline methods}
+\label{tab:comparison}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Method} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{mAP@0.5} \\
+\midrule
+YOLOv5 & 0.XX & 0.XX & 0.XX & 0.XX \\
+YOLOv8 & 0.XX & 0.XX & 0.XX & 0.XX \\
+\textbf{Ours (YOLOv12)} & \textbf{0.XX} & \textbf{0.XX} & \textbf{0.XX} & \textbf{0.XX} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Ablation Studies}
+
+% [ADD ABLATION RESULTS]
+
+%================================================================================
+\section{Discussion}
+%================================================================================
+
+% [WRITE AFTER RESULTS]
+
+\subsection{Clinical Implications}
+
+\subsection{Limitations}
+
+\subsection{Future Work}
+
+%================================================================================
+\section{Conclusion}
+%================================================================================
+
+We presented MalariaLab, a mobile point-of-care malaria diagnostic system combining YOLOv12-based multi-species \textit{Plasmodium} detection with a comprehensive mobile health application. Our system addresses key limitations of existing approaches by enabling species identification, parasitemia quantification, and practical deployment through an integrated mobile ecosystem. Evaluation demonstrates [summarize key results]. MalariaLab represents a step toward democratizing access to quality malaria diagnosis through AI-powered mobile health solutions.
+
+% Code availability statement (for camera-ready)
+% \paragraph{Code Availability} Source code and trained models available at [URL].
+
+%================================================================================
+% References
+%================================================================================
+
+\bibliographystyle{splncs04}
+\begin{thebibliography}{50}
+
+\bibitem{who2023}
+World Health Organization: World Malaria Report 2023. WHO, Geneva (2023)
+
+\bibitem{gallup2001}
+Gallup, J.L., Sachs, J.D.: The economic burden of malaria. Am. J. Trop. Med. Hyg. 64(1-2), 85--96 (2001)
+
+\bibitem{who2016microscopy}
+World Health Organization: Malaria Microscopy Quality Assurance Manual, Version 2. WHO, Geneva (2016)
+
+\bibitem{amexo2004}
+Amexo, M., et al.: Malaria misdiagnosis: effects on the poor and vulnerable. The Lancet 364(9448), 1896--1898 (2004)
+
+\bibitem{moody2002}
+Moody, A.: Rapid diagnostic tests for malaria parasites. Clin. Microbiol. Rev. 15(1), 66--78 (2002)
+
+\bibitem{berhane2018}
+Berhane, A., et al.: Major threat to malaria control programs by \textit{Plasmodium falciparum} lacking histidine-rich protein 2, Eritrea. Emerg. Infect. Dis. 24(3), 462--470 (2018)
+
+\bibitem{gatton2015}
+Gatton, M.L., et al.: Pan-\textit{Plasmodium} band sensitivity for \textit{Plasmodium falciparum} detection in combination malaria RDTs. Malar. J. 14(1), 1--8 (2015)
+
+\bibitem{poostchi2018}
+Poostchi, M., et al.: Image analysis and machine learning for detecting malaria. Transl. Res. 194, 36--55 (2018)
+
+\bibitem{ross1897}
+Ross, R.: On some peculiar pigmented cells found in two mosquitoes fed on malarial blood. Br. Med. J. 2(1929), 1786--1788 (1897)
+
+\bibitem{wongsrichanalai2007}
+Wongsrichanalai, C., et al.: A review of malaria diagnostic tools: microscopy and RDT. Am. J. Trop. Med. Hyg. 77(6), 119--127 (2007)
+
+\bibitem{kahama2011}
+Kahama-Maro, J., et al.: Low quality of routine microscopy for malaria at different levels of the health system in Dar es Salaam. Malar. J. 10(1), 1--10 (2011)
+
+\bibitem{cnops2011}
+Cnops, L., et al.: Malaria diagnosis and the identification of the parasite species: RT-PCR. PLoS ONE 6(3), e17737 (2011)
+
+\bibitem{liang2016}
+Liang, Z., et al.: CNN-based image analysis for malaria diagnosis. In: IEEE BIBM 2016 (2016)
+
+\bibitem{rajaraman2018}
+Rajaraman, S., et al.: Pre-trained convolutional neural networks as feature extractors toward improved malaria parasite detection. PeerJ 6, e4568 (2018)
+
+\bibitem{fuhad2020}
+Fuhad, K.M., et al.: Deep learning based automatic malaria parasite detection from blood smear and its smartphone based application. Diagnostics 10(5), 329 (2020)
+
+\bibitem{kassim2020}
+Kassim, Y.M., et al.: Clustering-based dual deep learning architecture for detecting red blood cells in malaria diagnostic smears. IEEE J. Biomed. Health Inform. 25(5), 1735--1746 (2020)
+
+\bibitem{masud2022}
+Masud, M., et al.: Lightweight ResNet model for automatic malaria parasite detection. Neural Comput. Appl. 34, 6751--6762 (2022)
+
+\bibitem{torres2018}
+Torres, K., et al.: Automated microscopy for routine malaria diagnosis: a field comparison on Giemsa-stained blood films. Malar. J. 17(1), 1--12 (2018)
+
+\bibitem{hung2017}
+Hung, J., et al.: Applying Faster R-CNN for object detection on malaria images. In: CVPR Workshops 2017 (2017)
+
+\bibitem{yang2017}
+Yang, F., et al.: A smartphone-based automatic malaria blood smear image analysis. J. Biomed. Opt. 22(6), 066010 (2017)
+
+\bibitem{abdurahman2019}
+Abdurahman, F., et al.: Malaria parasite detection using deep learning methods. In: ICT4DA 2019 (2019)
+
+\bibitem{hemachandran2023}
+Hemachandran, K., et al.: Performance analysis of deep learning algorithms in diagnosis of malaria disease. Diagnostics 13(3), 534 (2023)
+
+\bibitem{sultani2023}
+Sultani, W., et al.: Towards robust malaria parasite detection from diverse blood smear images using object detection models. In: IEEE ICIP 2023 (2023)
+
+\bibitem{vijayalakshmi2020}
+Vijayalakshmi, A., Kanna, B.R.: Deep learning approach to detect malaria from microscopic images. Multimed. Tools Appl. 79, 15297--15317 (2020)
+
+\bibitem{redmon2016}
+Redmon, J., et al.: You Only Look Once: Unified, real-time object detection. In: CVPR 2016 (2016)
+
+\bibitem{bochkovskiy2020}
+Bochkovskiy, A., et al.: YOLOv4: Optimal speed and accuracy of object detection. arXiv:2004.10934 (2020)
+
+\bibitem{jocher2023yolov8}
+Jocher, G., et al.: YOLOv8 by Ultralytics. GitHub (2023)
+
+\bibitem{malik2023}
+Malik, H., et al.: YOLO based object detection for tumor detection in histopathology images. In: IEEE ICETAS 2023 (2023)
+
+\bibitem{jiang2022}
+Jiang, H., et al.: A review of YOLO algorithm developments. Procedia Comput. Sci. 199, 1066--1073 (2022)
+
+\bibitem{kudisthalert2021}
+Kudisthalert, W., et al.: Automatic malaria detection using YOLOv3 on thick blood smear images. In: DAMT 2021 (2021)
+
+\bibitem{zurovac2011}
+Zurovac, D., et al.: The effect of mobile phone text-message reminders on Kenyan health workers' adherence to malaria treatment guidelines. The Lancet 378(9793), 795--803 (2011)
+
+\bibitem{thondoo2021}
+Thondoo, M., et al.: Mobile health interventions for malaria: a systematic review. mHealth 7, 8 (2021)
+
+\bibitem{breslauer2009}
+Breslauer, D.N., et al.: Mobile phone based clinical microscopy for global health applications. PLoS ONE 4(7), e6320 (2009)
+
+\bibitem{quinn2011}
+Quinn, J.A., et al.: Automated blood smear analysis for mobile malaria diagnosis. In: Mobile Computing, Applications, and Services, pp. 115--132. Springer (2011)
+
+\bibitem{tek2009}
+Tek, F.B., et al.: Computer vision for microscopy diagnosis of malaria. Malar. J. 8(1), 1--14 (2009)
+
+\end{thebibliography}
+
+\end{document}

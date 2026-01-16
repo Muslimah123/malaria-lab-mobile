@@ -7,14 +7,14 @@ const API_BASE_URL_STORAGE_KEY = 'apiBaseUrl';
 const DEV_CONFIG = {
   // Try multiple common IPs automatically (campus defaults + localhost for dev)
   POSSIBLE_BASE_URLS: [
-    'http://192.168.1.86:5000/api',  // Your specific IP
-    'http://172.29.106.158:5000/api',  // Campus server (default)
-    'http://192.168.1.168:5000/api', // Previous campus IP (backup)
-    'http://172.20.10.3:5000/api',   // Backup hotspot IP
-    'http://192.168.1.100:5000/api', // Common router range
-    'http://10.0.0.2:5000/api',      // Common Docker/VM IP
-    'http://localhost:5000/api',     // Same machine
-    'http://127.0.0.1:5000/api',     // Localhost alternative
+    'http://192.168.1.86:5002/api',  // Your specific IP
+    'http://172.29.106.158:5002/api',  // Campus server (default)
+    'http://192.168.1.168:5002/api', // Previous campus IP (backup)
+    'http://172.20.10.3:5002/api',   // Backup hotspot IP
+    'http://192.168.1.100:5002/api', // Common router range
+    'http://10.0.0.2:5002/api',      // Common Docker/VM IP
+    'http://localhost:5002/api',     // Same machine
+    'http://127.0.0.1:5002/api',     // Localhost alternative
   ],
   TIMEOUT: 120000,
   DEBUG: true
@@ -71,14 +71,14 @@ const checkHealth = async (baseUrl) => {
   }
 };
 
-// Auto-discovery function
+
 const discoverApiUrl = async () => {
   const stored = await getStoredBaseUrl();
   if (stored) {
     return stored;
   }
 
-  console.log('🔍 Auto-discovering server...');
+  console.log(' Auto-discovering server...');
   
   for (const baseUrl of DEV_CONFIG.POSSIBLE_BASE_URLS) {
     console.log(`🔍 Trying: ${baseUrl}`);
@@ -96,14 +96,14 @@ const discoverApiUrl = async () => {
   return await persistBaseUrl(DEV_CONFIG.POSSIBLE_BASE_URLS[0]);
 };
 
-// Public exports
+
 export const TIMEOUT = DEV_CONFIG.TIMEOUT;
 export const DEBUG = DEV_CONFIG.DEBUG;
 
-// Hard-code base URL for local iOS simulator testing
-export const API_BASE_URL = 'http://127.0.0.1:5000/api';
+// base URL for development
+export const API_BASE_URL = 'http://127.0.0.1:5002/api';
 
-// Bypass discovery for now and always use the hard-coded base URL
+
 export const getApiBaseUrl = async () => API_BASE_URL;
 
 export const getApiUrl = async (endpoint) => `${API_BASE_URL}${endpoint}`;
